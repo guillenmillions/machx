@@ -1,5 +1,29 @@
-import { useState, useEffect, useCallback } from "react";
-import {
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CotizadorPRO — Maquinados Industriales</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://unpkg.com/lucide-react@0.383.0/dist/umd/lucide-react.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'IBM Plex Sans',sans-serif;background:#f0f4f8;min-height:100vh}
+@media print{header,[data-noprint]{display:none!important}body{background:white!important}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const {
+  Calculator, FileText, Database, Plus, Trash2, Printer,
+  Edit3, Save, Package, Clock, RefreshCw, AlertTriangle,
+  Pause, Play, Copy, List, X, Flag, Layers, ChevronRight, MoreHorizontal
+} = lucideReact;
+
   Calculator, FileText, Database, Plus, Trash2, Printer,
   Edit3, Save, Package, Clock, RefreshCw, AlertTriangle,
   Pause, Play, Copy, List, X, Flag, Layers, ChevronRight, MoreHorizontal,
@@ -150,7 +174,7 @@ const S = {
 // ══════════════════════════════════════════════════════════════════════════
 // MAIN COMPONENT
 // ══════════════════════════════════════════════════════════════════════════
-export default function CotizadorPro() {
+function CotizadorPro() {
   const [quotes, setQuotes]     = useState([]);
   const [activeId, setActiveId] = useState(null);
   const [vista, setVista]       = useState("lista");
@@ -170,11 +194,11 @@ export default function CotizadorPro() {
   useEffect(()=>{
     (async()=>{
       try {
-        const q = await window.storage.get("cot_v2_quotes");
+        const q = { value: localStorage.getItem("cot_v2_quotes") };
         if(q) setQuotes(JSON.parse(q.value));
-        const p = await window.storage.get("cot_v2_procs");
+        const p = { value: localStorage.getItem("cot_v2_procs") };
         if(p) setProcs(JSON.parse(p.value));
-        const m = await window.storage.get("cot_v2_mats");
+        const m = { value: localStorage.getItem("cot_v2_mats") };
         if(m) setMats(JSON.parse(m.value));
       } catch{}
       setLoaded(true);
@@ -183,15 +207,15 @@ export default function CotizadorPro() {
 
   const saveQ = async (next) => {
     setQuotes(next);
-    try { await window.storage.set("cot_v2_quotes",JSON.stringify(next)); } catch{}
+    try { localStorage.setItem("cot_v2_quotes", JSON.stringify(next)); } catch{}
   };
   const saveProcs = async (next) => {
     setProcs(next);
-    try { await window.storage.set("cot_v2_procs",JSON.stringify(next)); } catch{}
+    try { localStorage.setItem("cot_v2_procs", JSON.stringify(next)); } catch{}
   };
   const saveMats = async (next) => {
     setMats(next);
-    try { await window.storage.set("cot_v2_mats",JSON.stringify(next)); } catch{}
+    try { localStorage.setItem("cot_v2_mats", JSON.stringify(next)); } catch{}
   };
 
   // ── Derived state ────────────────────────────────────────────────────────
@@ -205,7 +229,7 @@ export default function CotizadorPro() {
   const mutateQ = useCallback((updater) => {
     setQuotes(prev=>{
       const next = prev.map(q => q.id===activeId ? updater(structuredClone(q)) : q);
-      try{ window.storage.set("cot_v2_quotes",JSON.stringify(next)); }catch{}
+      try{ localStorage.setItem("cot_v2_quotes", JSON.stringify(next)); }catch{}
       return next;
     });
   },[activeId]);
@@ -267,7 +291,7 @@ export default function CotizadorPro() {
   const setStatus = (id,status,nota="") => {
     setQuotes(prev=>{
       const next=prev.map(q=>q.id===id?{...q,status,pausaNota:nota}:q);
-      try{ window.storage.set("cot_v2_quotes",JSON.stringify(next)); }catch{};
+      try{ localStorage.setItem("cot_v2_quotes", JSON.stringify(next)); }catch{};
       return next;
     });
   };
@@ -1160,3 +1184,9 @@ export default function CotizadorPro() {
     </div>
   );
 }
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(React.createElement(CotizadorPro));
+</script>
+</body>
+</html>
