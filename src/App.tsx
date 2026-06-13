@@ -624,7 +624,9 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, tx, cotEnEdicion
         </div>
 
         <div style={{ display:"flex", flexDirection:"column" as const, gap:10, marginTop:12 }}>
-          {lineasCalc.map((l: any, idx: number) => (
+          {lineas.map((l: any, idx: number) => {
+            const lc = lineasCalc.find((x:any) => x.id === l.id) || l;
+            return (
             <div key={l.id} style={{ border:`1px solid ${t.border}`, borderRadius:10, overflow:"hidden" }}>
 
               {/* Encabezado de partida — nombre visible para el cliente */}
@@ -680,16 +682,17 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, tx, cotEnEdicion
                 </div>
                 {/* Subtotales de la partida */}
                 <div style={{ display:"flex", gap:16, fontSize:12, color:t.textSub, borderTop:`1px solid ${t.border}`, paddingTop:8 }}>
-                  <span>Labor: <strong style={{ color:t.text }}>{fmtMXN(l.labor)}</strong></span>
-                  <span>Material: <strong style={{ color:t.text }}>{fmtMXN(l.costoMat)}</strong></span>
+                  <span>Labor: <strong style={{ color:t.text }}>{fmtMXN(lc.labor)}</strong></span>
+                  <span>Material: <strong style={{ color:t.text }}>{fmtMXN(lc.costoMat)}</strong></span>
                   <span style={{ marginLeft:"auto", fontWeight:700, color:t.text, fontSize:tamFuente }}>
-                    Subtotal: {fmtMXN(l.subtotal)}
+                    Subtotal: {fmtMXN(lc.subtotal)}
                   </span>
                 </div>
               </div>
 
             </div>
-          ))}
+            );
+          })}
         </div>
 
         <div style={{ display:"flex", gap:12, marginTop:14, alignItems:"center", flexWrap:"wrap" as const }}>
