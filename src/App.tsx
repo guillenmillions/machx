@@ -103,21 +103,32 @@ async function fetchTipoCambio(): Promise<number> {
 
 
 const TEMAS: Record<string, Record<string, string>> = {
+  claro: {
+    // Claro Profesional — diseño corporativo, optimizado para impresión
+    bg:"#f0f2f5",        // fondo general gris muy suave
+    card:"#ffffff",       // tarjetas blancas puras
+    border:"#dde1e9",    // bordes sutiles gris azulado
+    text:"#1a1f2e",      // texto principal casi negro, máximo contraste
+    textSub:"#5a6278",   // texto secundario gris medio legible
+    accent:"#1a56db",    // azul corporativo sólido (no saturado)
+    accentHover:"#1344b8",
+    success:"#0e7a3f",   // verde oscuro legible
+    danger:"#c41e1e",    // rojo legible
+    input:"#f7f8fa",     // inputs gris muy claro
+    header:"#ffffff",    // header blanco con sombra
+    acento:"#0e7a3f",
+    btnOrange:"#d4500a", // naranja oscuro (imprime bien)
+  },
   oscuro: {
+    // Oscuro Industrial — para trabajo nocturno o talleres con poca luz
     bg:"#0f1117", card:"#1a1d27", border:"#2a2d3e",
     text:"#e8eaf0", textSub:"#8b8fa8", accent:"#4f6ef7",
     accentHover:"#3d5ce0", success:"#22c55e", danger:"#ef4444",
     input:"#12151f", header:"#13161f",
     acento:"#1B9E75", btnOrange:"#f97316",
   },
-  claro: {
-    bg:"#f4f5f9", card:"#ffffff", border:"#e2e4ed",
-    text:"#1a1d27", textSub:"#6b7080", accent:"#4f6ef7",
-    accentHover:"#3d5ce0", success:"#16a34a", danger:"#dc2626",
-    input:"#f8f9fc", header:"#ffffff",
-    acento:"#16a34a", btnOrange:"#f97316",
-  },
   marino: {
+    // Azul Marino — intermedio, buena legibilidad en monitores
     bg:"#0a1628", card:"#0f2040", border:"#1a3a6b",
     text:"#cdd8f0", textSub:"#7a96c4", accent:"#38bdf8",
     accentHover:"#0ea5e9", success:"#34d399", danger:"#f87171",
@@ -133,7 +144,7 @@ const DATOS_INICIALES = {
     rfc:"", razonSocial:"", direccionFiscal:"",
   },
   config: { pctGD:35, pctSGV:15, pctMargen:25, tc:17.5, moneda:"MXN", idioma:"es", folioPrefix:"COT", folioSiguiente:1 },
-  tema:"oscuro", fuente:"IBM Plex Sans", tamTexto:"normal", plantillaPDF:"formal",
+  tema:"claro", fuente:"IBM Plex Sans", tamTexto:"normal", plantillaPDF:"formal",
   materiales: [
     { id:1, nombre:"Acero 1018",           precio:45  },
     { id:2, nombre:"Acero inoxidable 304", precio:120 },
@@ -228,11 +239,12 @@ function PantallaLogin() {
 // APP PRINCIPAL
 // ═══════════════════════════════════════════════════════════════════════════════
 export default function CotizadorProEstandar() {
-  const [sesion, setSesion]             = useState<any>(null);
-  const [cargandoSesion, setCargSesion] = useState(true);
-  const [datos, setDatos]               = useState<any>(DATOS_INICIALES);
-  const [guardando, setGuardando]       = useState(false);
-  const [pestana, setPestana]           = useState("cotizar");
+  const [sesion, setSesion]               = useState<any>(null);
+  const [cargandoSesion, setCargSesion]   = useState(true);
+  const [datos, setDatos]                 = useState<any>(DATOS_INICIALES);
+  const [guardando, setGuardando]         = useState(false);
+  const [pestana, setPestana]             = useState("cotizar");
+  const [cotEnEdicion, setCotEnEdicion]   = useState<any>(null); // {cot, modo: "mismo"|"nuevo"}
 
   // ── Auth ─────────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -295,6 +307,12 @@ export default function CotizadorProEstandar() {
   const tamFuente = datos.tamTexto === "chico" ? 13 : datos.tamTexto === "grande" ? 16 : 14;
   const tx        = T18N[datos.config?.idioma || "es"] || T18N.es;
 
+  // ── Edición completa desde Mis Cotizaciones ──────────────────────────────────
+  function handleEditarCompleto(cot: any, modo: "mismo"|"nuevo") {
+    setCotEnEdicion({ cot, modo });
+    setPestana("cotizar");
+  }
+
   return (
     <div style={{ minHeight:"100vh", background:t.bg, color:t.text, fontSize:tamFuente, fontFamily:`'${datos.fuente}',sans-serif` }}>
       <style>{`
@@ -307,7 +325,7 @@ export default function CotizadorProEstandar() {
       `}</style>
 
       {/* HEADER */}
-      <header style={{ background:t.header, borderBottom:`1px solid ${t.border}`, padding:"0 24px", height:60, display:"flex", alignItems:"center", justifyContent:"space-between", position:"sticky", top:0, zIndex:100 }}>
+      <header style={{ background:t.header, borderBottom:`1px solid ${t.border}`, padding:"0 24px", height:60, display:"flex", alignItems:"center", justifyContent:"space-between", position:"sticky", top:0, zIndex:100, boxShadow: datos.tema==="claro"?"0 1px 4px rgba(0,0,0,0.08)":"none" }}>
         <div style={{ display:"flex", alignItems:"center", gap:12 }}>
           {datos.taller.logo
             ? <img src={datos.taller.logo} alt="logo" style={{ height:36, borderRadius:6, objectFit:"contain" }}/>
@@ -342,8 +360,8 @@ export default function CotizadorProEstandar() {
 
       {/* CONTENIDO */}
       <main style={{ maxWidth:1100, margin:"0 auto", padding:"24px 16px" }}>
-        {pestana==="cotizar"    && <PestanaCotizar    datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} tx={tx} />}
-        {pestana==="lista"      && <PestanaLista      datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} tx={tx} />}
+        {pestana==="cotizar"    && <PestanaCotizar    datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} tx={tx} cotEnEdicion={cotEnEdicion} onLimpiarEdicion={()=>setCotEnEdicion(null)} />}
+        {pestana==="lista"      && <PestanaLista      datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} tx={tx} onEditarCompleto={handleEditarCompleto} />}
         {pestana==="materiales" && <PestanaMateriales datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} />}
         {pestana==="procesos"   && <PestanaProcesos   datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} />}
         {pestana==="clientes"   && <PestanaClientes   datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} />}
@@ -356,29 +374,36 @@ export default function CotizadorProEstandar() {
 // ═══════════════════════════════════════════════════════════════════════════════
 // PESTAÑA: NUEVA COTIZACIÓN
 // ═══════════════════════════════════════════════════════════════════════════════
-function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, tx }: any) {
-  const [clienteNombre,   setClienteNombre]   = useState("");
-  const [clienteEmpresa,  setClienteEmpresa]  = useState("");
-  const [clienteEmail,    setClienteEmail]    = useState("");
-  const [clienteTel,      setClienteTel]      = useState("");
-  const [clienteCiudad,   setClienteCiudad]   = useState("");
-  const [clienteRFC,      setClienteRFC]      = useState("");
-  const [clienteRazon,    setClienteRazon]    = useState("");
-  const [clienteDirFiscal,setClienteDirFiscal]= useState("");
-  const [folio,           setFolio]           = useState(() => generarFolio(datos.config, datos.cotizaciones||[]));
-  const [descripcion,     setDescripcion]     = useState("");
-  const [lineas,          setLineas]          = useState([nuevaLinea()]);
-  const [extras,          setExtras]          = useState(0);
-  const [nota,            setNota]            = useState("");
-  const [entrega,         setEntrega]         = useState("");
-  const [pago,            setPago]            = useState("Anticipo 50% / Liquidación a entrega");
-  const [validez,         setValidez]         = useState(30);
+function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, tx, cotEnEdicion, onLimpiarEdicion }: any) {
+  const cot = cotEnEdicion?.cot;
+  const modoEdicion = cotEnEdicion?.modo; // "mismo" | "nuevo"
+
+  const [clienteNombre,   setClienteNombre]   = useState(cot?.cliente?.nombre||"");
+  const [clienteEmpresa,  setClienteEmpresa]  = useState(cot?.cliente?.empresa||"");
+  const [clienteEmail,    setClienteEmail]    = useState(cot?.cliente?.email||"");
+  const [clienteTel,      setClienteTel]      = useState(cot?.cliente?.tel||"");
+  const [clienteCiudad,   setClienteCiudad]   = useState(cot?.cliente?.ciudad||"");
+  const [clienteRFC,      setClienteRFC]      = useState(cot?.cliente?.rfc||"");
+  const [clienteRazon,    setClienteRazon]    = useState(cot?.cliente?.razonSocial||"");
+  const [clienteDirFiscal,setClienteDirFiscal]= useState(cot?.cliente?.direccionFiscal||"");
+  const [folio,           setFolio]           = useState(() => {
+    if (!cot) return generarFolio(datos.config, datos.cotizaciones||[]);
+    if (modoEdicion === "mismo") return cot.folio;
+    return generarFolio(datos.config, datos.cotizaciones||[]);
+  });
+  const [descripcion,     setDescripcion]     = useState(cot?.descripcion||"");
+  const [lineas,          setLineas]          = useState<any[]>(cot?.lineas?.map((l:any)=>({...l, id:Date.now()+Math.random()})) || [nuevaLinea()]);
+  const [extras,          setExtras]          = useState(cot?.extras||0);
+  const [nota,            setNota]            = useState(cot?.nota||"");
+  const [entrega,         setEntrega]         = useState(cot?.cond?.entrega||"");
+  const [pago,            setPago]            = useState(cot?.cond?.pago||"Anticipo 50% / Liquidación a entrega");
+  const [validez,         setValidez]         = useState(cot?.cond?.validez||30);
   const [showVistaCliente,setShowVistaCliente]= useState(false);
   const [showSelectorCli, setShowSelectorCli] = useState(false);
   const [buscaCli,        setBuscaCli]        = useState("");
-  const [moneda,          setMoneda]          = useState(datos.config?.moneda || "MXN");
-  const [tc,              setTc]              = useState(datos.config?.tc || 17.5);
-  const [idioma,          setIdioma]          = useState(datos.config?.idioma || "es");
+  const [moneda,          setMoneda]          = useState(cot?.config?.moneda || datos.config?.moneda || "MXN");
+  const [tc,              setTc]              = useState(cot?.config?.tc || datos.config?.tc || 17.5);
+  const [idioma,          setIdioma]          = useState(cot?.config?.idioma || datos.config?.idioma || "es");
 
   function nuevaLinea() { return { id: Date.now() + Math.random(), proceso:"", material:"", kg:0, horas:0 }; }
 
@@ -429,7 +454,8 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, tx }: any) {
   function guardarCotizacion() {
     if (!clienteEmpresa && !clienteNombre) { alert("Agrega al menos el nombre o empresa del cliente."); return; }
     const nueva = {
-      id: Date.now(), folio, descripcion,
+      id: (modoEdicion === "mismo" && cot) ? cot.id : Date.now(),
+      folio, descripcion,
       fecha: new Date().toLocaleDateString("es-MX"),
       cliente: { nombre:clienteNombre, empresa:clienteEmpresa, email:clienteEmail, tel:clienteTel, ciudad:clienteCiudad, rfc:clienteRFC, razonSocial:clienteRazon, direccionFiscal:clienteDirFiscal },
       lineas: lineasCalc, extras: Number(extras)||0, nota,
@@ -437,21 +463,35 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, tx }: any) {
       config: { pctGD, pctSGV, pctMargen, moneda, tc, idioma },
       precioVenta: res.precioVenta, utilidad: res.utilidad, margenReal: res.margenReal,
     };
-    // Calcular el número que se usó y avanzar el contador
-    const anio    = new Date().getFullYear();
-    const prefix  = (datos.config?.folioPrefix||"COT").toUpperCase();
-    const patronAnio = new RegExp(`^${prefix}-${anio}-(\\d+)$`);
-    const m = folio.match(patronAnio);
-    const numUsado = m ? parseInt(m[1]) : (datos.config?.folioSiguiente||1);
-    const nuevoSiguiente = numUsado + 1;
-    actualizarDatos({ cotizaciones: [nueva, ...(datos.cotizaciones||[])], config: { ...datos.config, folioSiguiente: nuevoSiguiente } });
-    // Generar siguiente folio ya con el contador actualizado
+
+    let nuevasCots: any[];
+    let nuevoSiguiente: number;
+
+    if (modoEdicion === "mismo" && cot) {
+      // Reemplaza la cotización original, folio no cambia
+      nuevasCots = (datos.cotizaciones||[]).map((c: any) => c.id===cot.id ? nueva : c);
+      nuevoSiguiente = datos.config?.folioSiguiente || 1;
+    } else {
+      // Nueva cotización — avanzar contador
+      const anio = new Date().getFullYear();
+      const prefix = (datos.config?.folioPrefix||"COT").toUpperCase();
+      const patronAnio = new RegExp(`^${prefix}-${anio}-(\\d+)$`);
+      const m = folio.match(patronAnio);
+      const numUsado = m ? parseInt(m[1]) : (datos.config?.folioSiguiente||1);
+      nuevoSiguiente = numUsado + 1;
+      nuevasCots = [nueva, ...(datos.cotizaciones||[])];
+    }
+
     const configActualizado = { ...datos.config, folioSiguiente: nuevoSiguiente };
-    setFolio(generarFolio(configActualizado, [nueva, ...(datos.cotizaciones||[])]));
+    actualizarDatos({ cotizaciones: nuevasCots, config: configActualizado });
+
+    // Limpiar modo edición y preparar siguiente folio
+    onLimpiarEdicion?.();
+    setFolio(generarFolio(configActualizado, nuevasCots));
     setClienteNombre(""); setClienteEmpresa(""); setClienteEmail(""); setClienteTel(""); setClienteCiudad("");
     setClienteRFC(""); setClienteRazon(""); setClienteDirFiscal("");
     setDescripcion(""); setLineas([nuevaLinea()]); setExtras(0); setNota(""); setEntrega(""); setPago("Anticipo 50% / Liquidación a entrega");
-    alert("✅ Cotización guardada.");
+    alert(modoEdicion==="mismo" ? "✅ Cotización actualizada." : "✅ Cotización guardada.");
   }
 
   const card  = { background:t.card, borderRadius:12, border:`1px solid ${t.border}`, padding:20, marginBottom:20 };
@@ -471,6 +511,23 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, tx }: any) {
 
   return (
     <div>
+      {/* Banner modo edición */}
+      {cotEnEdicion && (
+        <div style={{ background: modoEdicion==="mismo"?"#1e3a5f":"#14532d", borderRadius:10, padding:"12px 18px", marginBottom:16, display:"flex", alignItems:"center", justifyContent:"space-between", border:`1px solid ${modoEdicion==="mismo"?"#3b82f6":"#22c55e"}` }}>
+          <div>
+            <span style={{ fontWeight:700, color: modoEdicion==="mismo"?"#60a5fa":"#4ade80", fontSize:13 }}>
+              {modoEdicion==="mismo" ? "✏️ Editando cotización existente" : "🆕 Nueva versión basada en cotización existente"}
+            </span>
+            <span style={{ color:"#94a3b8", fontSize:12, marginLeft:10 }}>
+              {modoEdicion==="mismo" ? `Folio: ${cot?.folio} — se reemplazará al guardar` : `Original: ${cot?.folio} → Nueva: ${folio}`}
+            </span>
+          </div>
+          <button onClick={()=>{ onLimpiarEdicion?.(); }} style={{ background:"none", border:"none", color:"#94a3b8", cursor:"pointer", fontSize:12, padding:"4px 8px", borderRadius:6 }}>
+            ✕ Cancelar edición
+          </button>
+        </div>
+      )}
+
       {/* Selector de cliente */}
       {showSelectorCli && (
         <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.6)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:200 }} onClick={()=>setShowSelectorCli(false)}>
@@ -661,19 +718,14 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, tx }: any) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // PESTAÑA: MIS COTIZACIONES
 // ═══════════════════════════════════════════════════════════════════════════════
-function PestanaLista({ datos, actualizarDatos, t, tamFuente, tx }: any) {
-  const [editando, setEditando]         = useState<any>(null);
-  const [showVista, setShowVista]       = useState<any>(null);
+function PestanaLista({ datos, actualizarDatos, t, tamFuente, tx, onEditarCompleto }: any) {
+  const [showVista,      setShowVista]      = useState<any>(null);
+  const [modalEditar,    setModalEditar]    = useState<any>(null); // cotización para modal de opción
   const cots = datos.cotizaciones || [];
 
   function eliminar(id: number) {
     if (!confirm("¿Eliminar esta cotización?")) return;
     actualizarDatos({ cotizaciones: cots.filter((c: any) => c.id !== id) });
-  }
-
-  function guardarEdicion(id: number, cambios: any) {
-    actualizarDatos({ cotizaciones: cots.map((c: any) => c.id===id ? {...c,...cambios} : c) });
-    setEditando(null);
   }
 
   if (showVista) return (
@@ -706,64 +758,74 @@ function PestanaLista({ datos, actualizarDatos, t, tamFuente, tx }: any) {
 
   return (
     <div>
+      {/* Modal de opción de edición */}
+      {modalEditar && (
+        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.7)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:300 }}
+          onClick={()=>setModalEditar(null)}>
+          <div style={{ background:t.card, borderRadius:16, padding:32, width:480, border:`1px solid ${t.border}`, boxShadow:"0 20px 60px rgba(0,0,0,0.5)" }}
+            onClick={(e:any)=>e.stopPropagation()}>
+            <div style={{ fontWeight:800, fontSize:17, color:t.text, marginBottom:6 }}>✏️ Editar cotización</div>
+            <div style={{ fontSize:13, color:t.textSub, marginBottom:24 }}>
+              Folio actual: <span style={{ fontFamily:"monospace", color:t.accent, fontWeight:700 }}>{modalEditar.folio}</span>
+            </div>
+
+            {/* Opción A — Mismo folio */}
+            <button onClick={()=>{ onEditarCompleto(modalEditar, "mismo"); setModalEditar(null); }}
+              style={{ width:"100%", padding:"16px 20px", borderRadius:10, border:`1px solid ${t.border}`, background:t.input, cursor:"pointer", textAlign:"left" as const, marginBottom:12, display:"block" }}>
+              <div style={{ fontWeight:700, color:t.text, fontSize:14, marginBottom:4 }}>
+                📝 Editar — mantener folio <span style={{ fontFamily:"monospace", fontSize:12, color:t.accent }}>{modalEditar.folio}</span>
+              </div>
+              <div style={{ fontSize:12, color:t.textSub }}>
+                Modifica procesos, materiales, cliente y condiciones. La cotización original se actualiza. Útil para correcciones.
+              </div>
+            </button>
+
+            {/* Opción B — Nuevo folio */}
+            <button onClick={()=>{ onEditarCompleto(modalEditar, "nuevo"); setModalEditar(null); }}
+              style={{ width:"100%", padding:"16px 20px", borderRadius:10, border:`2px solid ${t.accent}`, background:t.input, cursor:"pointer", textAlign:"left" as const, marginBottom:20, display:"block" }}>
+              <div style={{ fontWeight:700, color:t.accent, fontSize:14, marginBottom:4 }}>
+                🆕 Nueva versión — folio siguiente
+              </div>
+              <div style={{ fontSize:12, color:t.textSub }}>
+                Copia los datos a una cotización nueva con el siguiente folio. La original queda intacta como historial. Útil para revisiones de precio.
+              </div>
+            </button>
+
+            <button onClick={()=>setModalEditar(null)}
+              style={{ width:"100%", padding:"9px", borderRadius:8, border:`1px solid ${t.border}`, background:"transparent", color:t.textSub, cursor:"pointer", fontSize:13 }}>
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
+
       <div style={{ fontWeight:700, fontSize:tamFuente+2, marginBottom:20, color:t.text }}>📁 {tx.misCots} ({cots.length})</div>
       {cots.map((c: any) => (
         <div key={c.id} style={{ background:t.card, borderRadius:12, border:`1px solid ${t.border}`, padding:20, marginBottom:14 }}>
-          {editando?.id === c.id ? (
-            <EditarCotizacion cot={c} t={t} tamFuente={tamFuente} onGuardar={(cambios: any)=>guardarEdicion(c.id,cambios)} onCancelar={()=>setEditando(null)}/>
-          ) : (
-            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", flexWrap:"wrap" as const, gap:12 }}>
-              <div>
-                <div style={{ fontWeight:700, fontSize:tamFuente+1, color:t.text }}>{c.folio} — {c.cliente?.empresa||c.cliente||"Sin cliente"}</div>
-                {c.cliente?.nombre && <div style={{ color:t.textSub, fontSize:tamFuente-1 }}>Contacto: {c.cliente.nombre}</div>}
-                {c.descripcion     && <div style={{ color:t.textSub, fontSize:tamFuente-1, marginTop:4 }}>{c.descripcion}</div>}
-                <div style={{ color:t.textSub, fontSize:tamFuente-1, marginTop:2 }}>📅 {c.fecha}</div>
-                {c.cond?.entrega   && <div style={{ color:t.textSub, fontSize:tamFuente-1 }}>⏱ {c.cond.entrega}</div>}
-              </div>
-              <div style={{ textAlign:"right" }}>
-                <div style={{ fontSize:22, fontWeight:800, color:t.accent }}>{fmtMXN(c.precioVenta)}</div>
-                <div style={{ fontSize:12, color:t.success }}>Utilidad: {fmtMXN(c.utilidad)} · {c.margenReal?.toFixed(1)}%</div>
-                <div style={{ display:"flex", gap:8, justifyContent:"flex-end", marginTop:10, flexWrap:"wrap" as const }}>
-                  <button onClick={()=>setShowVista(c)} style={{ padding:"5px 12px", borderRadius:6, border:`1px solid ${t.border}`, background:"transparent", color:t.textSub, cursor:"pointer", fontSize:12 }}>🖨 PDF</button>
-                  <button onClick={()=>setEditando(c)} style={{ padding:"5px 12px", borderRadius:6, border:`1px solid ${t.accent}`, background:"transparent", color:t.accent, cursor:"pointer", fontSize:12 }}>✏️ Editar</button>
-                  <button onClick={()=>eliminar(c.id)} style={{ padding:"5px 12px", borderRadius:6, border:`1px solid ${t.danger}`, background:"transparent", color:t.danger, cursor:"pointer", fontSize:12 }}>Eliminar</button>
-                </div>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", flexWrap:"wrap" as const, gap:12 }}>
+            <div>
+              <div style={{ fontWeight:700, fontSize:tamFuente+1, color:t.text }}>{c.folio} — {c.cliente?.empresa||c.cliente||"Sin cliente"}</div>
+              {c.cliente?.nombre && <div style={{ color:t.textSub, fontSize:tamFuente-1 }}>Contacto: {c.cliente.nombre}</div>}
+              {c.descripcion     && <div style={{ color:t.textSub, fontSize:tamFuente-1, marginTop:4 }}>{c.descripcion}</div>}
+              <div style={{ color:t.textSub, fontSize:tamFuente-1, marginTop:2 }}>📅 {c.fecha}</div>
+              {c.cond?.entrega   && <div style={{ color:t.textSub, fontSize:tamFuente-1 }}>⏱ {c.cond.entrega}</div>}
+            </div>
+            <div style={{ textAlign:"right" }}>
+              <div style={{ fontSize:22, fontWeight:800, color:t.accent }}>{fmtMXN(c.precioVenta)}</div>
+              <div style={{ fontSize:12, color:t.success }}>Utilidad: {fmtMXN(c.utilidad)} · {c.margenReal?.toFixed(1)}%</div>
+              <div style={{ display:"flex", gap:8, justifyContent:"flex-end", marginTop:10, flexWrap:"wrap" as const }}>
+                <button onClick={()=>setShowVista(c)} style={{ padding:"5px 12px", borderRadius:6, border:`1px solid ${t.border}`, background:"transparent", color:t.textSub, cursor:"pointer", fontSize:12 }}>🖨 PDF</button>
+                <button onClick={()=>setModalEditar(c)} style={{ padding:"5px 12px", borderRadius:6, border:`1px solid ${t.accent}`, background:"transparent", color:t.accent, cursor:"pointer", fontSize:12 }}>✏️ Editar</button>
+                <button onClick={()=>eliminar(c.id)} style={{ padding:"5px 12px", borderRadius:6, border:`1px solid ${t.danger}`, background:"transparent", color:t.danger, cursor:"pointer", fontSize:12 }}>Eliminar</button>
               </div>
             </div>
-          )}
+          </div>
         </div>
       ))}
     </div>
   );
 }
 
-// ─── EDITOR DE COTIZACIÓN GUARDADA ────────────────────────────────────────────
-function EditarCotizacion({ cot, t, tamFuente, onGuardar, onCancelar }: any) {
-  const [folio,       setFolio]       = useState(cot.folio||"");
-  const [descripcion, setDescripcion] = useState(cot.descripcion||"");
-  const [nota,        setNota]        = useState(cot.nota||"");
-  const [entrega,     setEntrega]     = useState(cot.cond?.entrega||"");
-  const [pago,        setPago]        = useState(cot.cond?.pago||"");
-  const inp = { background:t.input, border:`1px solid ${t.border}`, borderRadius:8, padding:"8px 12px", color:t.text, fontSize:tamFuente, width:"100%", outline:"none" };
-  const label = { fontSize:tamFuente-1, color:t.textSub, marginBottom:4, display:"block" };
-
-  return (
-    <div>
-      <div style={{ fontWeight:700, color:t.text, marginBottom:12 }}>✏️ Editando {cot.folio}</div>
-      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:12 }}>
-        <div><label style={label}>Folio</label><input style={inp} value={folio} onChange={e=>setFolio(e.target.value)}/></div>
-        <div><label style={label}>Entrega</label><input style={inp} value={entrega} onChange={e=>setEntrega(e.target.value)}/></div>
-        <div style={{ gridColumn:"1/-1" }}><label style={label}>Descripción</label><input style={inp} value={descripcion} onChange={e=>setDescripcion(e.target.value)}/></div>
-        <div><label style={label}>Condiciones de pago</label><input style={inp} value={pago} onChange={e=>setPago(e.target.value)}/></div>
-        <div><label style={label}>Nota al cliente</label><input style={inp} value={nota} onChange={e=>setNota(e.target.value)}/></div>
-      </div>
-      <div style={{ display:"flex", gap:10 }}>
-        <button onClick={()=>onGuardar({ folio, descripcion, nota, cond:{ ...cot.cond, entrega, pago } })} style={{ padding:"8px 18px", borderRadius:8, border:"none", background:t.accent, color:"#fff", fontWeight:700, cursor:"pointer", fontSize:tamFuente }}>Guardar cambios</button>
-        <button onClick={onCancelar} style={{ padding:"8px 14px", borderRadius:8, border:`1px solid ${t.border}`, background:"transparent", color:t.textSub, cursor:"pointer", fontSize:tamFuente }}>Cancelar</button>
-      </div>
-    </div>
-  );
-}
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // VISTA PDF / CLIENTE
@@ -1244,8 +1306,8 @@ function PestanaConfig({ datos, actualizarDatos, t, tamFuente, tx }: any) {
           <div>
             <label style={label}>Tema de color</label>
             <select style={inp} value={datos.tema} onChange={e=>actualizarDatos({ tema:e.target.value })}>
+              <option value="claro">☀️ Claro Profesional (recomendado)</option>
               <option value="oscuro">🌑 Oscuro Industrial</option>
-              <option value="claro">☀️ Claro Profesional</option>
               <option value="marino">🌊 Azul Marino</option>
             </select>
           </div>
