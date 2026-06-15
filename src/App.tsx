@@ -32,6 +32,12 @@ const T18N: Record<string, Record<string, string>> = {
     guardar:"Guardar Cotización", nuevaCot:"Nueva Cotización",
     misCots:"Mis Cotizaciones", materiales:"Materiales",
     procesos:"Procesos", configuracion:"Configuración",
+    pagoPorDefecto:"Anticipo 50% / Liquidación a entrega",
+    // Estados
+    borrador:"Borrador", enviada:"Enviada", aprobada:"Aprobada",
+    rechazada:"Rechazada", enProceso:"En Proceso", entregada:"Entregada",
+    // Unidades
+    pza:"pza", pzas:"pzas", kg:"kg", hr:"hr", m:"m", ft:"ft", pulg:'pulg', lote:"lote",
   },
   en: {
     cotizacion:"QUOTATION", cliente:"Bill To", condiciones:"Terms",
@@ -43,6 +49,12 @@ const T18N: Record<string, Record<string, string>> = {
     guardar:"Save Quote", nuevaCot:"New Quote",
     misCots:"My Quotes", materiales:"Materials",
     procesos:"Processes", configuracion:"Settings",
+    pagoPorDefecto:"50% advance / balance on delivery",
+    // Estados
+    borrador:"Draft", enviada:"Sent", aprobada:"Approved",
+    rechazada:"Rejected", enProceso:"In Progress", entregada:"Delivered",
+    // Unidades
+    pza:"pc", pzas:"pcs", kg:"kg", hr:"hr", m:"m", ft:"ft", pulg:"in", lote:"lot",
   },
 };
 
@@ -167,78 +179,147 @@ const DATOS_INICIALES = {
 // ═══════════════════════════════════════════════════════════════════════════════
 // PANTALLA DE LOGIN
 // ═══════════════════════════════════════════════════════════════════════════════
+// ─── TEXTOS DEL LOGIN ─────────────────────────────────────────────────────────
+const LOGIN_TX: Record<string, Record<string, string>> = {
+  es: {
+    subtitulo: "Estándar — Sistema de Cotización Industrial",
+    sinCuenta: "¿No tienes cuenta?",
+    comprar: "Adquiere tu licencia aquí →",
+    iniciarSesion: "Iniciar sesión", registrarse: "Registrarse",
+    correo: "Correo electrónico", contrasena: "Contraseña (mínimo 6 caracteres)",
+    entrar: "Entrar", crearCuenta: "Crear cuenta", enviarEnlace: "Enviar enlace",
+    procesando: "Procesando...",
+    errorLogin: "Correo o contraseña incorrectos.",
+    cuentaCreada: "¡Cuenta creada! Revisa tu correo para confirmar.",
+    enlaceEnviado: "Te enviamos un enlace para restablecer tu contraseña.",
+    olvidaste: "¿Olvidaste tu contraseña?", volver: "← Volver",
+    resetDesc: "Ingresa tu correo para recibir el enlace de recuperación.",
+  },
+  en: {
+    subtitulo: "Standard — Industrial Quoting System",
+    sinCuenta: "Don't have an account?",
+    comprar: "Get your license here →",
+    iniciarSesion: "Sign in", registrarse: "Sign up",
+    correo: "Email address", contrasena: "Password (minimum 6 characters)",
+    entrar: "Sign in", crearCuenta: "Create account", enviarEnlace: "Send link",
+    procesando: "Processing...",
+    errorLogin: "Incorrect email or password.",
+    cuentaCreada: "Account created! Check your email to confirm.",
+    enlaceEnviado: "We sent you a link to reset your password.",
+    olvidaste: "Forgot your password?", volver: "← Back",
+    resetDesc: "Enter your email to receive a password reset link.",
+  },
+};
+
 function PantallaLogin() {
   const [modo, setModo]       = useState<"login"|"registro"|"reset">("login");
   const [email, setEmail]     = useState("");
   const [password, setPass]   = useState("");
   const [cargando, setCarg]   = useState(false);
   const [mensaje, setMsg]     = useState<{tipo:string;texto:string}|null>(null);
-  const t = TEMAS.oscuro;
+  const [lang, setLang]       = useState<"es"|"en">("es");
+  const t  = TEMAS.oscuro;
+  const lx = LOGIN_TX[lang];
 
   async function handleLogin(e: any) {
     e.preventDefault(); setCarg(true); setMsg(null);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) setMsg({ tipo:"error", texto:"Correo o contraseña incorrectos." });
+    if (error) setMsg({ tipo:"error", texto: lx.errorLogin });
     setCarg(false);
   }
   async function handleRegistro(e: any) {
     e.preventDefault(); setCarg(true); setMsg(null);
     const { error } = await supabase.auth.signUp({ email, password });
     if (error) setMsg({ tipo:"error", texto: error.message });
-    else setMsg({ tipo:"ok", texto:"¡Cuenta creada! Revisa tu correo para confirmar." });
+    else setMsg({ tipo:"ok", texto: lx.cuentaCreada });
     setCarg(false);
   }
   async function handleReset(e: any) {
     e.preventDefault(); setCarg(true); setMsg(null);
     const { error } = await supabase.auth.resetPasswordForEmail(email);
     if (error) setMsg({ tipo:"error", texto: error.message });
-    else setMsg({ tipo:"ok", texto:"Te enviamos un enlace para restablecer tu contraseña." });
+    else setMsg({ tipo:"ok", texto: lx.enlaceEnviado });
     setCarg(false);
   }
 
-  const inp  = { width:"100%", padding:"12px 14px", borderRadius:8, border:`1px solid ${t.border}`, background:t.input, color:t.text, fontSize:15, outline:"none", boxSizing:"border-box" as const };
-  const btn  = { width:"100%", padding:"13px", borderRadius:8, border:"none", background:t.accent, color:"#fff", fontSize:16, fontWeight:700, cursor:cargando?"not-allowed":"pointer", opacity:cargando?0.7:1 };
+  const inp = { width:"100%", padding:"12px 14px", borderRadius:8, border:`1px solid ${t.border}`, background:t.input, color:t.text, fontSize:15, outline:"none", boxSizing:"border-box" as const };
+  const btn = { width:"100%", padding:"13px", borderRadius:8, border:"none", background:t.accent, color:"#fff", fontSize:16, fontWeight:700, cursor:cargando?"not-allowed":"pointer", opacity:cargando?0.7:1 };
 
   return (
     <div style={{ minHeight:"100vh", background:"linear-gradient(135deg, #0f1117 0%, #1a1d27 50%, #0f1117 100%)", display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"'IBM Plex Sans',sans-serif" }}>
-      <div style={{ width:400, background:t.card, borderRadius:16, border:`1px solid ${t.border}`, padding:40 }}>
+      <div style={{ width:420, background:t.card, borderRadius:16, border:`1px solid ${t.border}`, padding:40 }}>
+
+        {/* Selector de idioma */}
+        <div style={{ display:"flex", justifyContent:"flex-end", marginBottom:16, gap:6 }}>
+          {(["es","en"] as const).map(l => (
+            <button key={l} onClick={()=>{ setLang(l); setMsg(null); }} style={{
+              padding:"4px 12px", borderRadius:20, border:`1px solid ${lang===l?t.accent:t.border}`,
+              background:lang===l?t.accent:"transparent", color:lang===l?"#fff":t.textSub,
+              cursor:"pointer", fontSize:12, fontWeight:600,
+            }}>
+              {l==="es" ? "🇲🇽 ES" : "🇺🇸 EN"}
+            </button>
+          ))}
+        </div>
+
+        {/* Logo y título */}
         <div style={{ textAlign:"center", marginBottom:32 }}>
           <div style={{ display:"inline-flex", alignItems:"center", justifyContent:"center", width:56, height:56, borderRadius:14, background:t.accent, marginBottom:16, fontSize:26 }}>⚙️</div>
-          <div style={{ fontSize:22, fontWeight:800, color:t.text }}>CotizadorPRO</div>
-          <div style={{ fontSize:13, color:t.textSub, marginTop:4 }}>Estándar — Sistema de Cotización Industrial</div>
-          <div style={{ fontSize:11, color:"#475569", marginTop:8, lineHeight:1.5 }}>
-            ¿No tienes cuenta?{" "}
+          <div style={{ fontSize:24, fontWeight:800, color:t.text }}>CotizadorPRO</div>
+          <div style={{ fontSize:13, color:t.textSub, marginTop:4 }}>{lx.subtitulo}</div>
+          <div style={{ fontSize:11, color:"#475569", marginTop:10, lineHeight:1.6 }}>
+            {lx.sinCuenta}{" "}
             <a href="https://hotmart.com/es/marketplace/productos/cotizadorpro-estandar-sistema-de-cotizacion-para-talleres-de-maquinado/G106237955N"
               target="_blank" rel="noopener noreferrer"
               style={{ color:"#60a5fa", textDecoration:"none", fontWeight:600 }}>
-              Adquiere tu licencia aquí →
+              {lx.comprar}
             </a>
           </div>
         </div>
+
+        {/* Tabs login/registro */}
         {modo !== "reset" && (
           <div style={{ display:"flex", marginBottom:28, background:t.input, borderRadius:8, padding:4 }}>
             {(["login","registro"] as const).map(m => (
-              <button key={m} onClick={() => { setModo(m); setMsg(null); }} style={{ flex:1, padding:"9px 0", border:"none", borderRadius:6, cursor:"pointer", background:modo===m?t.accent:"transparent", color:modo===m?"#fff":t.textSub, fontWeight:600, fontSize:14 }}>
-                {m === "login" ? "Iniciar sesión" : "Registrarse"}
+              <button key={m} onClick={()=>{ setModo(m); setMsg(null); }} style={{
+                flex:1, padding:"9px 0", border:"none", borderRadius:6, cursor:"pointer",
+                background:modo===m?t.accent:"transparent",
+                color:modo===m?"#fff":t.textSub, fontWeight:600, fontSize:14,
+              }}>
+                {m==="login" ? lx.iniciarSesion : lx.registrarse}
               </button>
             ))}
           </div>
         )}
+
+        {/* Formulario */}
         <form onSubmit={modo==="login"?handleLogin:modo==="registro"?handleRegistro:handleReset}>
           <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
-            {modo === "reset" && <div style={{ color:t.textSub, fontSize:14 }}>Ingresa tu correo para recibir el enlace de recuperación.</div>}
-            <input style={inp} type="email" placeholder="Correo electrónico" value={email} onChange={e=>setEmail(e.target.value)} required />
-            {modo !== "reset" && <input style={inp} type="password" placeholder="Contraseña (mínimo 6 caracteres)" value={password} onChange={e=>setPass(e.target.value)} required minLength={6} />}
-            <button type="submit" style={btn} disabled={cargando}>{cargando?"Procesando...":modo==="login"?"Entrar":modo==="registro"?"Crear cuenta":"Enviar enlace"}</button>
+            {modo === "reset" && <div style={{ color:t.textSub, fontSize:14, lineHeight:1.5 }}>{lx.resetDesc}</div>}
+            <input style={inp} type="email" placeholder={lx.correo} value={email} onChange={e=>setEmail(e.target.value)} required />
+            {modo !== "reset" && <input style={inp} type="password" placeholder={lx.contrasena} value={password} onChange={e=>setPass(e.target.value)} required minLength={6} />}
+            <button type="submit" style={btn} disabled={cargando}>
+              {cargando ? lx.procesando : modo==="login" ? lx.entrar : modo==="registro" ? lx.crearCuenta : lx.enviarEnlace}
+            </button>
           </div>
         </form>
+
+        {/* Mensaje */}
         {mensaje && (
-          <div style={{ marginTop:16, padding:"10px 14px", borderRadius:8, fontSize:14, background:mensaje.tipo==="ok"?"#14532d33":"#7f1d1d33", color:mensaje.tipo==="ok"?t.success:t.danger, border:`1px solid ${mensaje.tipo==="ok"?t.success:t.danger}` }}>{mensaje.texto}</div>
+          <div style={{ marginTop:16, padding:"10px 14px", borderRadius:8, fontSize:14,
+            background:mensaje.tipo==="ok"?"#14532d33":"#7f1d1d33",
+            color:mensaje.tipo==="ok"?t.success:t.danger,
+            border:`1px solid ${mensaje.tipo==="ok"?t.success:t.danger}` }}>
+            {mensaje.texto}
+          </div>
         )}
+
+        {/* Links */}
         <div style={{ marginTop:20, textAlign:"center", fontSize:13, color:t.textSub }}>
-          {modo==="login" && <span onClick={()=>{setModo("reset");setMsg(null);}} style={{ cursor:"pointer", color:t.accent }}>¿Olvidaste tu contraseña?</span>}
-          {modo==="reset" && <span onClick={()=>{setModo("login");setMsg(null);}} style={{ cursor:"pointer", color:t.accent }}>← Volver al login</span>}
+          {modo==="login" && <span onClick={()=>{setModo("reset");setMsg(null);}} style={{ cursor:"pointer", color:t.accent }}>{lx.olvidaste}</span>}
+          {modo==="reset" && <span onClick={()=>{setModo("login");setMsg(null);}} style={{ cursor:"pointer", color:t.accent }}>{lx.volver}</span>}
         </div>
+
       </div>
     </div>
   );
@@ -296,7 +377,11 @@ export default function CotizadorProEstandar() {
     setGuardando(true);
     const payload = { user_id: sesion.user.id, datos: nuevosDatos, updated_at: new Date().toISOString() };
     const { error } = await supabase.from("cotizaciones").upsert(payload, { onConflict: "user_id" });
-    if (error) console.error("Error guardando:", error);
+    if (error) {
+      console.error("Error guardando:", error);
+      // El error se muestra via notif si está disponible — guardamos en localStorage como respaldo
+      try { localStorage.setItem("cotizadorpro_backup", JSON.stringify(nuevosDatos)); } catch{}
+    }
     setGuardando(false);
   }, [sesion]);
 
@@ -337,6 +422,7 @@ export default function CotizadorProEstandar() {
         ::-webkit-scrollbar{width:6px} ::-webkit-scrollbar-track{background:${t.bg}} ::-webkit-scrollbar-thumb{background:${t.border};border-radius:3px}
         input,select,textarea{font-family:'${datos.fuente}',sans-serif;}
         @keyframes slideIn { from { opacity:0; transform:translateX(20px); } to { opacity:1; transform:translateX(0); } }
+        @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.3)} }
         @media print{header,nav,[data-noprint]{display:none!important}body{background:white!important}.print-doc{max-width:100%!important;border:none!important;box-shadow:none!important}}
       `}</style>
 
@@ -369,7 +455,12 @@ export default function CotizadorProEstandar() {
           </div>
         </div>
         <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-          {guardando && <span style={{ fontSize:12, color:t.textSub }}>Guardando…</span>}
+          {guardando && (
+            <span style={{ fontSize:12, color:t.textSub, display:"flex", alignItems:"center", gap:6 }}>
+              <span style={{ width:8, height:8, borderRadius:"50%", background:t.accent, display:"inline-block", animation:"pulse 1s infinite" }}/>
+              Guardando…
+            </span>
+          )}
           <button onClick={cerrarSesion} style={{ padding:"6px 14px", borderRadius:7, border:`1px solid ${t.border}`, background:"transparent", color:t.textSub, cursor:"pointer", fontSize:13 }}>Cerrar sesión</button>
         </div>
       </header>
@@ -428,7 +519,7 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, tx, cotEnEdicion
   const [extras,          setExtras]          = useState(cot?.extras||0);
   const [nota,            setNota]            = useState(cot?.nota||"");
   const [entrega,         setEntrega]         = useState(cot?.cond?.entrega||"");
-  const [pago,            setPago]            = useState(cot?.cond?.pago||"Anticipo 50% / Liquidación a entrega");
+  const [pago,            setPago]            = useState(cot?.cond?.pago||(idioma==="en"?"50% advance / balance on delivery":"Anticipo 50% / Liquidación a entrega"));
   const [validez,         setValidez]         = useState(cot?.cond?.validez||30);
   const [showVistaCliente,setShowVistaCliente]= useState(false);
   const [showSelectorCli, setShowSelectorCli] = useState(false);
@@ -437,7 +528,7 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, tx, cotEnEdicion
   const [tc,              setTc]              = useState(cot?.config?.tc || datos.config?.tc || 17.5);
   const [idioma,          setIdioma]          = useState(cot?.config?.idioma || datos.config?.idioma || "es");
 
-  function nuevaLinea() { return { id: Date.now() + Math.random(), nombrePartida:"", proceso:"", material:"", kg:0, horas:0, cantidad:1 }; }
+  function nuevaLinea() { return { id: Date.now() + Math.random(), nombrePartida:"", proceso:"", material:"", kg:0, horas:0, cantidad:1, unidad:"pza" }; }
 
   const { pctGD, pctSGV, pctMargen } = datos.config;
   let totalLabor = 0, totalMaterial = 0;
@@ -489,6 +580,7 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, tx, cotEnEdicion
     const nueva = {
       id: (modoEdicion === "mismo" && cot) ? cot.id : Date.now(),
       folio, descripcion,
+      estado: (modoEdicion === "mismo" && cot) ? (cot.estado||"borrador") : "borrador",
       fecha: new Date().toLocaleDateString(idioma==="en"?"en-US":"es-MX", {year:"numeric",month:"short",day:"numeric"}),
       cliente: { nombre:clienteNombre, empresa:clienteEmpresa, email:clienteEmail, tel:clienteTel, ciudad:clienteCiudad, rfc:clienteRFC, razonSocial:clienteRazon, direccionFiscal:clienteDirFiscal },
       lineas: lineasCalc, extras: Number(extras)||0, nota,
@@ -523,7 +615,8 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, tx, cotEnEdicion
     setFolio(generarFolio(configActualizado, nuevasCots));
     setClienteNombre(""); setClienteEmpresa(""); setClienteEmail(""); setClienteTel(""); setClienteCiudad("");
     setClienteRFC(""); setClienteRazon(""); setClienteDirFiscal("");
-    setDescripcion(""); setLineas([nuevaLinea()]); setExtras(0); setNota(""); setEntrega(""); setPago("Anticipo 50% / Liquidación a entrega");
+    setDescripcion(""); setLineas([nuevaLinea()]); setExtras(0); setNota(""); setEntrega("");
+    setPago(idioma==="en"?"50% advance / balance on delivery":"Anticipo 50% / Liquidación a entrega");
     mostrarNotif(modoEdicion==="mismo" ? "Cotización actualizada correctamente." : "Cotización guardada correctamente.", "ok");
   }
 
@@ -673,8 +766,12 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, tx, cotEnEdicion
                   onChange={e=>cambiarLinea(l.id,"nombrePartida",e.target.value)}
                   style={{ flex:1, background:"rgba(255,255,255,0.15)", border:"1px solid rgba(255,255,255,0.3)", borderRadius:6, padding:"6px 12px", color:"white", fontSize:tamFuente, fontWeight:700, outline:"none" }}
                 />
+                <select value={l.unidad||"pza"} onChange={e=>cambiarLinea(l.id,"unidad",e.target.value)}
+                  style={{ background:"rgba(255,255,255,0.15)", border:"1px solid rgba(255,255,255,0.3)", borderRadius:6, padding:"5px 8px", color:"white", fontSize:12, outline:"none", cursor:"pointer" }}>
+                  {["pza","kg","hr","m","ft","pulg","lote","juego","servicio"].map(u=><option key={u} value={u} style={{ background:"#1a56db" }}>{u}</option>)}
+                </select>
                 <span style={{ fontSize:10, color:"rgba(255,255,255,0.6)", whiteSpace:"nowrap" as const }}>
-                  → aparece en PDF del cliente
+                  → PDF cliente
                 </span>
                 <button onClick={()=>eliminarLinea(l.id)}
                   style={{ background:"rgba(255,255,255,0.15)", border:"none", color:"white", cursor:"pointer", borderRadius:5, padding:"3px 8px", fontSize:14, lineHeight:1 }}>
@@ -964,15 +1061,60 @@ function PestanaLista({ datos, actualizarDatos, t, tamFuente, tx, onEditarComple
       )}
 
       <div style={{ fontWeight:700, fontSize:tamFuente+2, marginBottom:20, color:t.text }}>📁 {tx.misCots} ({cots.length})</div>
-      {cots.map((c: any) => (
+      {cots.map((c: any) => {
+        // Colores por estado
+        const estadoConfig: Record<string, {color:string; bg:string; icono:string}> = {
+          borrador:   { color:"#92400e", bg:"#fef3c7", icono:"📝" },
+          enviada:    { color:"#1e40af", bg:"#dbeafe", icono:"📤" },
+          aprobada:   { color:"#065f46", bg:"#d1fae5", icono:"✅" },
+          rechazada:  { color:"#991b1b", bg:"#fee2e2", icono:"❌" },
+          enProceso:  { color:"#5b21b6", bg:"#ede9fe", icono:"⚙️" },
+          entregada:  { color:"#374151", bg:"#f3f4f6", icono:"📦" },
+        };
+        const estado = c.estado || "borrador";
+        const ec = estadoConfig[estado] || estadoConfig.borrador;
+        const estadoLabel: Record<string,string> = {
+          borrador:"Borrador", enviada:"Enviada", aprobada:"Aprobada",
+          rechazada:"Rechazada", enProceso:"En Proceso", entregada:"Entregada",
+        };
+
+        return (
         <div key={c.id} style={{ background:t.card, borderRadius:12, border:`1px solid ${t.border}`, padding:20, marginBottom:14 }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", flexWrap:"wrap" as const, gap:12 }}>
-            <div>
-              <div style={{ fontWeight:700, fontSize:tamFuente+1, color:t.text }}>{c.folio} — {c.cliente?.empresa||c.cliente||"Sin cliente"}</div>
+            <div style={{ flex:1 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:4, flexWrap:"wrap" as const }}>
+                <div style={{ fontWeight:700, fontSize:tamFuente+1, color:t.text }}>{c.folio} — {c.cliente?.empresa||c.cliente||"Sin cliente"}</div>
+                {/* Badge de estado */}
+                <span style={{ fontSize:11, fontWeight:700, padding:"2px 10px", borderRadius:20, background:ec.bg, color:ec.color }}>
+                  {ec.icono} {estadoLabel[estado]||estado}
+                </span>
+              </div>
               {c.cliente?.nombre && <div style={{ color:t.textSub, fontSize:tamFuente-1 }}>Contacto: {c.cliente.nombre}</div>}
               {c.descripcion     && <div style={{ color:t.textSub, fontSize:tamFuente-1, marginTop:4 }}>{c.descripcion}</div>}
               <div style={{ color:t.textSub, fontSize:tamFuente-1, marginTop:2 }}>📅 {c.fecha}</div>
               {c.cond?.entrega   && <div style={{ color:t.textSub, fontSize:tamFuente-1 }}>⏱ {c.cond.entrega}</div>}
+
+              {/* Cambiar estado */}
+              <div style={{ display:"flex", alignItems:"center", gap:8, marginTop:10, flexWrap:"wrap" as const }}>
+                <span style={{ fontSize:11, color:t.textSub }}>Estado:</span>
+                {["borrador","enviada","aprobada","rechazada","enProceso","entregada"].map(st => {
+                  const sc = estadoConfig[st];
+                  const isActive = estado === st;
+                  return (
+                    <button key={st} onClick={()=>{
+                      actualizarDatos({ cotizaciones: cots.map((x:any)=>x.id===c.id?{...x,estado:st}:x) });
+                      mostrarNotif(`Estado actualizado: ${estadoLabel[st]}`, "ok");
+                    }} style={{
+                      padding:"3px 10px", borderRadius:20, fontSize:11, fontWeight:isActive?700:500,
+                      border:`1px solid ${isActive?sc.color:t.border}`,
+                      background:isActive?sc.bg:"transparent",
+                      color:isActive?sc.color:t.textSub, cursor:"pointer",
+                    }}>
+                      {sc.icono} {estadoLabel[st]}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
             <div style={{ textAlign:"right" }}>
               <div style={{ fontSize:22, fontWeight:800, color:t.accent }}>{fmtMXN(c.precioVenta)}</div>
@@ -985,7 +1127,8 @@ function PestanaLista({ datos, actualizarDatos, t, tamFuente, tx, onEditarComple
             </div>
           </div>
         </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -1087,19 +1230,21 @@ function VistaPDF({ datos, lineasCalc, res, extras, folio, descripcion, nota, cl
           <tbody>
             {lineasCalc.map((l: any, i: number) => {
               // Precio por pieza = subtotal de esta partida (ya incluye labor + material)
-              // El precio al cliente es la parte proporcional del precio de venta total
               const pesoPartida = res.precioVenta > 0 ? l.subtotal / (res.costoDirecto||1) : 0;
               const precioClientePartida = res.precioVenta * pesoPartida;
               const nombreMostrar = l.nombrePartida || l.proceso || `Partida ${i+1}`;
+              const cantPartida   = l.cantidad || 1;
+              const unidadPartida = l.unidad || (idioma==="en"?"pc":"pza");
+              const precioUnitario = cantPartida > 1 ? precioClientePartida / cantPartida : precioClientePartida;
               return (
                 <tr key={l.id||i} style={{ borderBottom: plantilla==="industrial"?"1px solid #1e3a5f":"1px solid #e8ebf0", background: i%2===0&&plantilla!=="industrial"?"#f7f8fa":"transparent" }}>
                   <td style={{ ...estilosComunes.td, textAlign:"center" as const, color:"#94a3b8", fontWeight:600 }}>{i+1}</td>
                   <td style={estilosComunes.td}>
                     <div style={{ fontWeight:600, fontSize:14 }}>{nombreMostrar}</div>
                   </td>
-                  <td style={{ ...estilosComunes.td, textAlign:"center" as const, fontWeight:600 }}>1</td>
-                  <td style={{ ...estilosComunes.td, color:"#64748b" }}>pza</td>
-                  <td style={{ ...estilosComunes.td, textAlign:"right" as const, color:"#5a6278" }}>{fmt2(precioClientePartida)}</td>
+                  <td style={{ ...estilosComunes.td, textAlign:"center" as const, fontWeight:600 }}>{cantPartida}</td>
+                  <td style={{ ...estilosComunes.td, color:"#64748b" }}>{unidadPartida}</td>
+                  <td style={{ ...estilosComunes.td, textAlign:"right" as const, color:"#5a6278" }}>{fmt2(precioUnitario)}</td>
                   <td style={{ ...estilosComunes.td, textAlign:"right" as const, fontWeight:700, fontSize:14 }}>{fmt2(precioClientePartida)}</td>
                 </tr>
               );
