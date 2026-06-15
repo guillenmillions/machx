@@ -143,7 +143,8 @@ const DATOS_INICIALES = {
     nombre:"", telefono:"", email:"", logo:"",
     rfc:"", razonSocial:"", direccionFiscal:"",
   },
-  config: { pctGD:35, pctSGV:15, pctMargen:25, tc:17.5, moneda:"MXN", idioma:"es", folioPrefix:"COT", folioSiguiente:1 },
+  config: { pctGD:35, pctSGV:15, pctMargen:25, tc:17.5, moneda:"MXN", idioma:"es", folioPrefix:"COT", folioSiguiente:1,
+    impuestoNombre:"IVA", impuestoPct:16, impuestoActivo:true },
   tema:"claro", fuente:"IBM Plex Sans", tamTexto:"normal", plantillaPDF:"formal",
   materiales: [
     { id:1, nombre:"Acero 1018",           precio:45  },
@@ -252,7 +253,13 @@ export default function CotizadorProEstandar() {
   const [datos, setDatos]                 = useState<any>(DATOS_INICIALES);
   const [guardando, setGuardando]         = useState(false);
   const [pestana, setPestana]             = useState("cotizar");
-  const [cotEnEdicion, setCotEnEdicion]   = useState<any>(null); // {cot, modo: "mismo"|"nuevo"}
+  const [notif, setNotif]                 = useState<{msg:string;tipo:"ok"|"error"|"warn"}|null>(null);
+  const [cotEnEdicion, setCotEnEdicion]   = useState<any>(null);
+
+  function mostrarNotif(msg: string, tipo:"ok"|"error"|"warn"="ok") {
+    setNotif({msg,tipo});
+    setTimeout(()=>setNotif(null), 3500);
+  }
 
   // ── Auth ─────────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -329,8 +336,25 @@ export default function CotizadorProEstandar() {
         body { background:${t.bg}; color:${t.text}; font-family:'${datos.fuente}',sans-serif; }
         ::-webkit-scrollbar{width:6px} ::-webkit-scrollbar-track{background:${t.bg}} ::-webkit-scrollbar-thumb{background:${t.border};border-radius:3px}
         input,select,textarea{font-family:'${datos.fuente}',sans-serif;}
+        @keyframes slideIn { from { opacity:0; transform:translateX(20px); } to { opacity:1; transform:translateX(0); } }
         @media print{header,nav,[data-noprint]{display:none!important}body{background:white!important}.print-doc{max-width:100%!important;border:none!important;box-shadow:none!important}}
       `}</style>
+
+      {/* NOTIFICACIÓN TOAST */}
+      {notif && (
+        <div style={{
+          position:"fixed", top:72, right:20, zIndex:500,
+          background: notif.tipo==="ok"?t.success : notif.tipo==="warn"?"#f59e0b":t.danger,
+          color:"white", padding:"12px 20px", borderRadius:10,
+          boxShadow:"0 4px 20px rgba(0,0,0,0.2)", fontSize:14, fontWeight:600,
+          display:"flex", alignItems:"center", gap:10, maxWidth:360,
+          animation:"slideIn 0.2s ease",
+        }}>
+          <span>{notif.tipo==="ok"?"✅":notif.tipo==="warn"?"⚠️":"❌"}</span>
+          <span>{notif.msg}</span>
+          <button onClick={()=>setNotif(null)} style={{background:"none",border:"none",color:"white",cursor:"pointer",marginLeft:"auto",fontSize:16,lineHeight:1}}>×</button>
+        </div>
+      )}
 
       {/* HEADER */}
       <header style={{ background:t.header, borderBottom:`1px solid ${t.border}`, padding:"0 24px", height:60, display:"flex", alignItems:"center", justifyContent:"space-between", position:"sticky", top:0, zIndex:100, boxShadow: datos.tema==="claro"?"0 1px 4px rgba(0,0,0,0.08)":"none" }}>
@@ -368,11 +392,11 @@ export default function CotizadorProEstandar() {
 
       {/* CONTENIDO */}
       <main style={{ maxWidth:1100, margin:"0 auto", padding:"24px 16px" }}>
-        {pestana==="cotizar"    && <PestanaCotizar    datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} tx={tx} cotEnEdicion={cotEnEdicion} onLimpiarEdicion={()=>setCotEnEdicion(null)} />}
-        {pestana==="lista"      && <PestanaLista      datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} tx={tx} onEditarCompleto={handleEditarCompleto} />}
+        {pestana==="cotizar"    && <PestanaCotizar    datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} tx={tx} cotEnEdicion={cotEnEdicion} onLimpiarEdicion={()=>setCotEnEdicion(null)} mostrarNotif={mostrarNotif} />}
+        {pestana==="lista"      && <PestanaLista      datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} tx={tx} onEditarCompleto={handleEditarCompleto} mostrarNotif={mostrarNotif} />}
         {pestana==="materiales" && <PestanaMateriales datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} />}
         {pestana==="procesos"   && <PestanaProcesos   datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} />}
-        {pestana==="clientes"   && <PestanaClientes   datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} />}
+        {pestana==="clientes"   && <PestanaClientes   datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} mostrarNotif={mostrarNotif} />}
         {pestana==="config"     && <PestanaConfig     datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} tx={tx} />}
       </main>
     </div>
@@ -382,7 +406,7 @@ export default function CotizadorProEstandar() {
 // ═══════════════════════════════════════════════════════════════════════════════
 // PESTAÑA: NUEVA COTIZACIÓN
 // ═══════════════════════════════════════════════════════════════════════════════
-function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, tx, cotEnEdicion, onLimpiarEdicion }: any) {
+function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, tx, cotEnEdicion, onLimpiarEdicion, mostrarNotif }: any) {
   const cot = cotEnEdicion?.cot;
   const modoEdicion = cotEnEdicion?.modo; // "mismo" | "nuevo"
 
@@ -413,18 +437,19 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, tx, cotEnEdicion
   const [tc,              setTc]              = useState(cot?.config?.tc || datos.config?.tc || 17.5);
   const [idioma,          setIdioma]          = useState(cot?.config?.idioma || datos.config?.idioma || "es");
 
-  function nuevaLinea() { return { id: Date.now() + Math.random(), nombrePartida:"", proceso:"", material:"", kg:0, horas:0 }; }
+  function nuevaLinea() { return { id: Date.now() + Math.random(), nombrePartida:"", proceso:"", material:"", kg:0, horas:0, cantidad:1 }; }
 
   const { pctGD, pctSGV, pctMargen } = datos.config;
   let totalLabor = 0, totalMaterial = 0;
   const lineasCalc = lineas.map(l => {
-    const proc = datos.procesos.find((p: any) => p.nombre === l.proceso);
-    const mat  = datos.materiales.find((m: any) => m.nombre === l.material);
-    const costoLabor    = (proc?.tarifa || 0) * (l.horas || 0);
-    const costoMaterial = (mat?.precio  || 0) * (l.kg    || 0);
+    const proc     = datos.procesos.find((p: any) => p.nombre === l.proceso);
+    const mat      = datos.materiales.find((m: any) => m.nombre === l.material);
+    const cantidad = l.cantidad || 1;
+    const costoLabor    = (proc?.tarifa || 0) * (l.horas || 0) * cantidad;
+    const costoMaterial = (mat?.precio  || 0) * (l.kg    || 0) * cantidad;
     totalLabor    += costoLabor;
     totalMaterial += costoMaterial;
-    return { ...l, labor: costoLabor, costoMat: costoMaterial, subtotal: costoLabor + costoMaterial };
+    return { ...l, cantidad, labor: costoLabor, costoMat: costoMaterial, subtotal: costoLabor + costoMaterial };
   });
   const res = calcular(totalLabor, totalMaterial, Number(extras)||0, pctGD, pctSGV, pctMargen);
 
@@ -456,15 +481,15 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, tx, cotEnEdicion
       nuevosClientes = [...clientes, { ...datosCliente, id: Date.now(), creadoEn: new Date().toLocaleDateString("es-MX") }];
     }
     actualizarDatos({ clientes: nuevosClientes });
-    alert("✅ Cliente guardado en catálogo.");
+    mostrarNotif("Cliente guardado en catálogo.", "ok");
   }
 
   function guardarCotizacion() {
-    if (!clienteEmpresa && !clienteNombre) { alert("Agrega al menos el nombre o empresa del cliente."); return; }
+    if (!clienteEmpresa && !clienteNombre) { mostrarNotif("Agrega al menos el nombre o empresa del cliente.", "warn"); return; }
     const nueva = {
       id: (modoEdicion === "mismo" && cot) ? cot.id : Date.now(),
       folio, descripcion,
-      fecha: new Date().toLocaleDateString("es-MX"),
+      fecha: new Date().toLocaleDateString(idioma==="en"?"en-US":"es-MX", {year:"numeric",month:"short",day:"numeric"}),
       cliente: { nombre:clienteNombre, empresa:clienteEmpresa, email:clienteEmail, tel:clienteTel, ciudad:clienteCiudad, rfc:clienteRFC, razonSocial:clienteRazon, direccionFiscal:clienteDirFiscal },
       lineas: lineasCalc, extras: Number(extras)||0, nota,
       cond: { entrega, pago, validez },
@@ -499,7 +524,7 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, tx, cotEnEdicion
     setClienteNombre(""); setClienteEmpresa(""); setClienteEmail(""); setClienteTel(""); setClienteCiudad("");
     setClienteRFC(""); setClienteRazon(""); setClienteDirFiscal("");
     setDescripcion(""); setLineas([nuevaLinea()]); setExtras(0); setNota(""); setEntrega(""); setPago("Anticipo 50% / Liquidación a entrega");
-    alert(modoEdicion==="mismo" ? "✅ Cotización actualizada." : "✅ Cotización guardada.");
+    mostrarNotif(modoEdicion==="mismo" ? "Cotización actualizada correctamente." : "Cotización guardada correctamente.", "ok");
   }
 
   const card  = { background:t.card, borderRadius:12, border:`1px solid ${t.border}`, padding:20, marginBottom:20 };
@@ -662,7 +687,12 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, tx, cotEnEdicion
                 <div style={{ fontSize:10, fontWeight:700, color:t.textSub, textTransform:"uppercase" as const, letterSpacing:"0.07em", marginBottom:10 }}>
                   Detalle interno del taller
                 </div>
-                <div style={{ display:"grid", gridTemplateColumns:"2fr 2fr 1fr 1fr", gap:10, marginBottom:10 }}>
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 2fr 2fr 1fr 1fr", gap:10, marginBottom:10 }}>
+                  <div>
+                    <div style={{ fontSize:11, color:t.textSub, marginBottom:4 }}>Cantidad</div>
+                    <input type="number" style={{...inp, fontWeight:700, borderColor:t.accent}} value={l.cantidad||1} min={1} step={1}
+                      onChange={e=>cambiarLinea(l.id,"cantidad",parseInt(e.target.value)||1)}/>
+                  </div>
                   <div>
                     <div style={{ fontSize:11, color:t.textSub, marginBottom:4 }}>Proceso</div>
                     <select style={inp} value={l.proceso} onChange={e=>cambiarLinea(l.id,"proceso",e.target.value)}>
@@ -678,12 +708,12 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, tx, cotEnEdicion
                     </select>
                   </div>
                   <div>
-                    <div style={{ fontSize:11, color:t.textSub, marginBottom:4 }}>Horas</div>
+                    <div style={{ fontSize:11, color:t.textSub, marginBottom:4 }}>Horas c/u</div>
                     <input type="number" style={inp} value={l.horas} min={0} step={0.25}
                       onChange={e=>cambiarLinea(l.id,"horas",parseFloat(e.target.value)||0)}/>
                   </div>
                   <div>
-                    <div style={{ fontSize:11, color:t.textSub, marginBottom:4 }}>Kg / Pzas</div>
+                    <div style={{ fontSize:11, color:t.textSub, marginBottom:4 }}>Kg c/u</div>
                     <input type="number" style={inp} value={l.kg} min={0} step={0.1}
                       onChange={e=>cambiarLinea(l.id,"kg",parseFloat(e.target.value)||0)}/>
                   </div>
@@ -746,8 +776,15 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, tx, cotEnEdicion
           <div style={{ display:"flex", justifyContent:"space-between", padding:"7px 0", borderBottom:`1px solid ${t.border}` }}>
             <span style={{ color:t.textSub }}>Margen real</span><span style={{ color:t.success, fontWeight:700 }}>{res.margenReal.toFixed(1)}%</span>
           </div>
+          {datos.config?.impuestoActivo !== false && (
+            <div style={{ display:"flex", justifyContent:"space-between", padding:"7px 0", borderBottom:`1px solid ${t.border}` }}>
+              <span style={{ color:t.textSub }}>{datos.config?.impuestoNombre||"IVA"} ({datos.config?.impuestoPct||16}%)</span>
+              <span style={{ fontWeight:700 }}>{fmt2(res.precioVenta*(datos.config?.impuestoPct||16)/100)}</span>
+            </div>
+          )}
           <div style={{ display:"flex", justifyContent:"space-between", padding:"7px 0", borderBottom:`1px solid ${t.border}` }}>
-            <span style={{ color:t.textSub }}>Total + IVA (16%)</span><span style={{ fontWeight:700 }}>{fmt2(res.precioVenta*1.16)}</span>
+            <span style={{ color:t.textSub }}>Total{datos.config?.impuestoActivo!==false?` + ${datos.config?.impuestoNombre||"IVA"}`:""}</span>
+            <span style={{ fontWeight:700 }}>{fmt2(datos.config?.impuestoActivo!==false ? res.precioVenta*(1+(datos.config?.impuestoPct||16)/100) : res.precioVenta)}</span>
           </div>
           <div style={{ marginTop:14 }}>
             <label style={label}>Nota para el cliente</label>
@@ -770,14 +807,15 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, tx, cotEnEdicion
 // ═══════════════════════════════════════════════════════════════════════════════
 // PESTAÑA: MIS COTIZACIONES
 // ═══════════════════════════════════════════════════════════════════════════════
-function PestanaLista({ datos, actualizarDatos, t, tamFuente, tx, onEditarCompleto }: any) {
+function PestanaLista({ datos, actualizarDatos, t, tamFuente, tx, onEditarCompleto, mostrarNotif }: any) {
   const [showVista,      setShowVista]      = useState<any>(null);
   const [modalEditar,    setModalEditar]    = useState<any>(null); // cotización para modal de opción
   const cots = datos.cotizaciones || [];
 
   function eliminar(id: number) {
-    if (!confirm("¿Eliminar esta cotización?")) return;
+    if (!window.confirm("¿Eliminar esta cotización? Esta acción no se puede deshacer.")) return;
     actualizarDatos({ cotizaciones: cots.filter((c: any) => c.id !== id) });
+    mostrarNotif("Cotización eliminada.", "warn");
   }
 
   if (showVista) return (
@@ -1086,12 +1124,31 @@ function VistaPDF({ datos, lineasCalc, res, extras, folio, descripcion, nota, cl
         {/* TOTALES */}
         <div style={{ display:"flex", justifyContent:"flex-end", marginTop:16, marginBottom:24 }}>
           <div style={{ width:300 }}>
-            {[{ l:txPDF.subtotal, v:totalVenta },{ l:"IVA (16%)", v:totalVenta*0.16 }].map(({l,v})=>(
-              <div key={l} style={{ display:"flex", justifyContent:"space-between", padding:"6px 0", borderBottom: plantilla==="industrial"?"1px solid #1e3a5f":"1px solid #f1f5f9", fontSize:13, color:"#64748b" }}><span>{l}</span><span>{fmt2(v)}</span></div>
-            ))}
-            <div style={{ ...estilosComunes.totalBox, background: plantilla==="industrial"?"#f97316":"#1a1d27" }}>
-              <span>TOTAL {mLabel}</span><span>{fmt2(totalVenta*1.16)}</span>
-            </div>
+            {(()=>{
+              const impActivo = datos.config?.impuestoActivo !== false;
+              const impNombre = datos.config?.impuestoNombre || "IVA";
+              const impPct    = datos.config?.impuestoPct ?? 16;
+              const impMonto  = impActivo ? totalVenta * impPct / 100 : 0;
+              const totalFinal= totalVenta + impMonto;
+              return (<>
+                <div style={{ display:"flex", justifyContent:"space-between", padding:"6px 0", borderBottom: plantilla==="industrial"?"1px solid #1e3a5f":"1px solid #f1f5f9", fontSize:13, color:"#64748b" }}>
+                  <span>{txPDF.subtotal}</span><span>{fmt2(totalVenta)}</span>
+                </div>
+                {impActivo && (
+                  <div style={{ display:"flex", justifyContent:"space-between", padding:"6px 0", borderBottom: plantilla==="industrial"?"1px solid #1e3a5f":"1px solid #f1f5f9", fontSize:13, color:"#64748b" }}>
+                    <span>{impNombre} ({impPct}%)</span><span>{fmt2(impMonto)}</span>
+                  </div>
+                )}
+                <div style={{ ...estilosComunes.totalBox, background: plantilla==="industrial"?"#f97316":"#1a1d27" }}>
+                  <span>TOTAL {mLabel}</span><span>{fmt2(totalFinal)}</span>
+                </div>
+                {!impActivo && (
+                  <div style={{ fontSize:11, color:"#94a3b8", textAlign:"center" as const, marginTop:6 }}>
+                    Precio no incluye impuestos — sujeto a régimen fiscal del cliente
+                  </div>
+                )}
+              </>);
+            })()}
           </div>
         </div>
 
@@ -1116,7 +1173,7 @@ function VistaPDF({ datos, lineasCalc, res, extras, folio, descripcion, nota, cl
 // ═══════════════════════════════════════════════════════════════════════════════
 // PESTAÑA: CATÁLOGO DE CLIENTES
 // ═══════════════════════════════════════════════════════════════════════════════
-function PestanaClientes({ datos, actualizarDatos, t, tamFuente }: any) {
+function PestanaClientes({ datos, actualizarDatos, t, tamFuente, mostrarNotif }: any) {
   const [nuevo, setNuevo]     = useState({ empresa:"", nombre:"", email:"", tel:"", ciudad:"", rfc:"", razonSocial:"", direccionFiscal:"" });
   const [editId, setEditId]   = useState<number|null>(null);
   const [busca, setBusca]     = useState("");
@@ -1132,8 +1189,9 @@ function PestanaClientes({ datos, actualizarDatos, t, tamFuente }: any) {
   }
 
   function eliminar(id: number) {
-    if (!confirm("¿Eliminar este cliente?")) return;
+    if (!window.confirm("¿Eliminar este cliente?")) return;
     actualizarDatos({ clientes: clientes.filter((c: any) => c.id !== id) });
+    mostrarNotif("Cliente eliminado.", "warn");
   }
 
   function guardarEdicion(id: number, datos2: any) {
@@ -1418,6 +1476,44 @@ function PestanaConfig({ datos, actualizarDatos, t, tamFuente, tx }: any) {
               {(datos.config.folioPrefix||"COT").toUpperCase()}-{new Date().getFullYear()}-{String(datos.config.folioSiguiente||1).padStart(4,"0")}
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Impuesto */}
+      <div style={card}>
+        <div style={{ fontWeight:700, fontSize:tamFuente+2, marginBottom:6, color:t.text }}>🧾 Impuesto sobre Ventas</div>
+        <div style={{ fontSize:12, color:t.textSub, marginBottom:16 }}>
+          Configura el impuesto según tu país: IVA 16% (México), Sales Tax (EE.UU.), VAT 19% (Alemania), o desactívalo para exportaciones con tasa cero.
+        </div>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:16, marginBottom:12 }}>
+          <div>
+            <label style={label}>Nombre del impuesto</label>
+            <input style={inp} placeholder="IVA, Sales Tax, VAT..."
+              value={datos.config?.impuestoNombre||"IVA"}
+              onChange={e=>actualizarDatos({ config:{...datos.config, impuestoNombre:e.target.value} })}/>
+          </div>
+          <div>
+            <label style={label}>Porcentaje (%)</label>
+            <input type="number" style={inp} min={0} max={100} step={0.1}
+              value={datos.config?.impuestoPct??16}
+              onChange={e=>actualizarDatos({ config:{...datos.config, impuestoPct:parseFloat(e.target.value)||0} })}/>
+          </div>
+          <div>
+            <label style={label}>Mostrar en PDF</label>
+            <div style={{ display:"flex", gap:8, marginTop:6 }}>
+              {[{v:true,l:"✅ Sí, incluir"},{v:false,l:"❌ No (tasa cero / exento)"}].map(op=>(
+                <button key={String(op.v)} onClick={()=>actualizarDatos({ config:{...datos.config, impuestoActivo:op.v} })}
+                  style={{ flex:1, padding:"8px 4px", borderRadius:8, border:`1px solid ${(datos.config?.impuestoActivo??true)===op.v?t.accent:t.border}`,
+                    background:(datos.config?.impuestoActivo??true)===op.v?t.input:"transparent",
+                    color:(datos.config?.impuestoActivo??true)===op.v?t.accent:t.textSub, cursor:"pointer", fontSize:11, fontWeight:600 }}>
+                  {op.l}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div style={{ fontSize:11, color:t.textSub, background:t.input, padding:"8px 12px", borderRadius:6 }}>
+          Ejemplos: México IVA 16% · EE.UU. sin impuesto (B2B con certificado de exención) · Alemania VAT 19% · España IVA 21% · Colombia IVA 19% · Exportación directa: desactivado (tasa cero)
         </div>
       </div>
 
