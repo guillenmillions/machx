@@ -2,8 +2,8 @@ import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@supabase/supabase-js";
 
 // ─── SUPABASE ─────────────────────────────────────────────────────────────────
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "https://hanvrxmzgyimgsxobjey.supabase.co";
-const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || "sb_publishable_AMnOqs0pzAkqTR-gMDofAg_0BpOKVig";
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ─── MONEDAS ──────────────────────────────────────────────────────────────────
@@ -199,12 +199,20 @@ function PantallaLogin() {
   const btn  = { width:"100%", padding:"13px", borderRadius:8, border:"none", background:t.accent, color:"#fff", fontSize:16, fontWeight:700, cursor:cargando?"not-allowed":"pointer", opacity:cargando?0.7:1 };
 
   return (
-    <div style={{ minHeight:"100vh", background:t.bg, display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"'IBM Plex Sans',sans-serif" }}>
+    <div style={{ minHeight:"100vh", background:"linear-gradient(135deg, #0f1117 0%, #1a1d27 50%, #0f1117 100%)", display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"'IBM Plex Sans',sans-serif" }}>
       <div style={{ width:400, background:t.card, borderRadius:16, border:`1px solid ${t.border}`, padding:40 }}>
         <div style={{ textAlign:"center", marginBottom:32 }}>
           <div style={{ display:"inline-flex", alignItems:"center", justifyContent:"center", width:56, height:56, borderRadius:14, background:t.accent, marginBottom:16, fontSize:26 }}>⚙️</div>
           <div style={{ fontSize:22, fontWeight:800, color:t.text }}>CotizadorPRO</div>
           <div style={{ fontSize:13, color:t.textSub, marginTop:4 }}>Estándar — Sistema de Cotización Industrial</div>
+          <div style={{ fontSize:11, color:"#475569", marginTop:8, lineHeight:1.5 }}>
+            ¿No tienes cuenta?{" "}
+            <a href="https://hotmart.com/es/marketplace/productos/cotizadorpro-estandar-sistema-de-cotizacion-para-talleres-de-maquinado/G106237955N"
+              target="_blank" rel="noopener noreferrer"
+              style={{ color:"#60a5fa", textDecoration:"none", fontWeight:600 }}>
+              Adquiere tu licencia aquí →
+            </a>
+          </div>
         </div>
         {modo !== "reset" && (
           <div style={{ display:"flex", marginBottom:28, background:t.input, borderRadius:8, padding:4 }}>
@@ -636,7 +644,7 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, tx, cotEnEdicion
                 </span>
                 <input
                   value={l.nombrePartida||""}
-                  placeholder={`Ej: Perno M12 × 40mm, Eje de transmisión, Soporte estructural…`}
+                  placeholder={`Ej: Perno M12, Eje de transmisión, Soporte...`}
                   onChange={e=>cambiarLinea(l.id,"nombrePartida",e.target.value)}
                   style={{ flex:1, background:"rgba(255,255,255,0.15)", border:"1px solid rgba(255,255,255,0.3)", borderRadius:6, padding:"6px 12px", color:"white", fontSize:tamFuente, fontWeight:700, outline:"none" }}
                 />
@@ -793,10 +801,88 @@ function PestanaLista({ datos, actualizarDatos, t, tamFuente, tx, onEditarComple
   );
 
   if (cots.length === 0) return (
-    <div style={{ textAlign:"center", padding:60, color:t.textSub }}>
-      <div style={{ fontSize:48, marginBottom:16 }}>📁</div>
-      <div style={{ fontSize:18, fontWeight:600, color:t.text }}>Sin cotizaciones aún</div>
-      <div style={{ marginTop:8, fontSize:14 }}>Ve a "{tx.nuevaCot}" para empezar</div>
+    <div style={{ maxWidth:600, margin:"0 auto", padding:"40px 16px" }}>
+      {/* Título */}
+      <div style={{ textAlign:"center", marginBottom:32 }}>
+        <div style={{ fontSize:44, marginBottom:12 }}>👋</div>
+        <div style={{ fontSize:22, fontWeight:800, color:t.text, marginBottom:6 }}>
+          Bienvenido a CotizadorPRO
+        </div>
+        <div style={{ fontSize:14, color:t.textSub }}>
+          Sigue estos 3 pasos para crear tu primera cotización profesional
+        </div>
+      </div>
+
+      {/* Pasos */}
+      {[
+        {
+          num:"1", icono:"🏭", titulo:"Configura tu taller",
+          desc:"Agrega el nombre, logo, RFC y datos fiscales de tu taller. Aparecerán en todos tus PDFs.",
+          tab:"config", btnLabel:"Ir a Configuración",
+          listo: !!(datos.taller?.nombre),
+        },
+        {
+          num:"2", icono:"👥", titulo:"Agrega tu primer cliente",
+          desc:"Guarda los datos de tus clientes para cargarlos automáticamente al cotizar.",
+          tab:"clientes", btnLabel:"Ir a Clientes",
+          listo: (datos.clientes||[]).length > 0,
+        },
+        {
+          num:"3", icono:"💰", titulo:"Crea tu primera cotización",
+          desc:"Llena los datos del trabajo, agrega las partidas y genera un PDF profesional en segundos.",
+          tab:"cotizar", btnLabel:"Nueva Cotización",
+          listo: false,
+        },
+      ].map((paso, i) => (
+        <div key={paso.num} style={{
+          display:"flex", alignItems:"flex-start", gap:16,
+          background: paso.listo ? (t.bg==="white"||t.bg==="#f0f2f5"?"#f0fdf4":t.input) : t.card,
+          border:`1px solid ${paso.listo ? t.success+"44" : t.border}`,
+          borderRadius:12, padding:"18px 20px", marginBottom:12,
+        }}>
+          {/* Número / check */}
+          <div style={{
+            width:40, height:40, borderRadius:"50%", flexShrink:0,
+            background: paso.listo ? t.success : t.accent,
+            display:"flex", alignItems:"center", justifyContent:"center",
+            fontSize: paso.listo ? 18 : 16, fontWeight:800, color:"white",
+          }}>
+            {paso.listo ? "✓" : paso.num}
+          </div>
+          {/* Contenido */}
+          <div style={{ flex:1 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
+              <span style={{ fontSize:16 }}>{paso.icono}</span>
+              <span style={{ fontWeight:700, fontSize:15, color:t.text }}>{paso.titulo}</span>
+              {paso.listo && <span style={{ fontSize:11, color:t.success, fontWeight:600, background:t.success+"22", padding:"2px 8px", borderRadius:10 }}>✓ Listo</span>}
+            </div>
+            <div style={{ fontSize:13, color:t.textSub, lineHeight:1.5, marginBottom:12 }}>
+              {paso.desc}
+            </div>
+            <button
+              onClick={()=> {
+                // Navegamos cambiando la pestaña desde aquí — usamos sendPrompt como workaround
+                // El componente recibe setPestana via prop
+                if((paso as any).onNav) (paso as any).onNav(paso.tab);
+              }}
+              style={{
+                padding:"7px 16px", borderRadius:8, border:`1px solid ${paso.listo?t.success:t.accent}`,
+                background:"transparent", color:paso.listo?t.success:t.accent,
+                cursor:"pointer", fontSize:13, fontWeight:600,
+              }}
+            >
+              {paso.listo ? "✓ Completado" : `→ ${paso.btnLabel}`}
+            </button>
+          </div>
+        </div>
+      ))}
+
+      {/* Tip final */}
+      <div style={{ textAlign:"center", marginTop:24, padding:"14px 20px", background:t.input, borderRadius:10, border:`1px solid ${t.border}` }}>
+        <span style={{ fontSize:13, color:t.textSub }}>
+          💡 <strong style={{ color:t.text }}>Tip:</strong> Tus cotizaciones se guardan automáticamente en la nube. Accede desde cualquier dispositivo.
+        </span>
+      </div>
     </div>
   );
 
@@ -892,6 +978,13 @@ function VistaPDF({ datos, lineasCalc, res, extras, folio, descripcion, nota, cl
 
   return (
     <div>
+      {/* Warning si no hay datos del taller */}
+      {!datos.taller?.nombre && (
+        <div style={{ background:"#fef3c7", border:"1px solid #f59e0b", borderRadius:8, padding:"10px 16px", marginBottom:16, fontSize:13, color:"#92400e" }} data-noprint>
+          ⚠ <strong>Tu taller no tiene datos configurados.</strong> Ve a <strong>Configuración → Datos del Taller</strong> para agregar nombre, logo y datos fiscales. Aparecerán en este PDF.
+        </div>
+      )}
+
       <div style={{ display:"flex", gap:10, alignItems:"center", marginBottom:20, flexWrap:"wrap" as const }} data-noprint>
         <button onClick={onCerrar} style={{ padding:"7px 14px", borderRadius:8, border:`1px solid ${t.border}`, background:"transparent", color:t.text, cursor:"pointer" }}>← Volver</button>
         <button onClick={()=>window.print()} style={{ padding:"7px 16px", borderRadius:8, border:"none", background:t.accent, color:"#fff", cursor:"pointer", fontWeight:700 }}>🖨 Imprimir / PDF</button>
@@ -1057,7 +1150,10 @@ function PestanaClientes({ datos, actualizarDatos, t, tamFuente }: any) {
     <div>
       {/* Formulario nuevo cliente */}
       <div style={{ background:t.card, borderRadius:12, border:`1px solid ${t.border}`, padding:24, marginBottom:20 }}>
-        <div style={{ fontWeight:700, fontSize:tamFuente+1, marginBottom:16, color:t.text }}>➕ Agregar cliente al catálogo</div>
+        <div style={{ fontWeight:700, fontSize:tamFuente+1, marginBottom:4, color:t.text }}>➕ Agregar cliente al catálogo</div>
+        <div style={{ fontSize:12, color:t.textSub, marginBottom:16, padding:"8px 12px", background:t.input, borderRadius:6 }}>
+          💡 Los clientes guardados aquí se cargan automáticamente al cotizar — sin volver a escribir sus datos.
+        </div>
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:12 }}>
           <div><label style={label}>Empresa *</label><input style={inp} value={nuevo.empresa} onChange={e=>setNuevo(p=>({...p,empresa:e.target.value}))} placeholder="Nombre de la empresa"/></div>
           <div><label style={label}>Contacto</label><input style={inp} value={nuevo.nombre} onChange={e=>setNuevo(p=>({...p,nombre:e.target.value}))} placeholder="Nombre del contacto"/></div>
