@@ -91,6 +91,11 @@ const T18N: Record<string, Record<string, string>> = {
     idiomaSistema:"Idioma del sistema y PDF", apariencia:"Apariencia",
     impuestoVentas:"Impuesto sobre Ventas",
     pagoPorDefecto:"Anticipo 50% / Liquidación a entrega",
+    eliminar:"Eliminar", guardar:"Guardar", cancelar:"Cancelar",
+    buscar:"Buscar…", priceKg:"Precio por kg (MXN)", tarifaHr:"Tarifa por hora (MXN)",
+    dirFiscalCorta:"Dir. Fiscal", catalogoMat:"Catálogo de Materiales",
+    catalogoProc:"Catálogo de Procesos", processoMaq:"Proceso / Máquina",
+    tarifaHrCol:"Tarifa/hr", nombreMat:"Nombre del material",
     cerrarSesion:"Cerrar sesión", buscarCliente:"Buscar por nombre o empresa…",
     sinClientesCat2:"Sin clientes.", nombreMaterial:"Nombre del material",
     nombreProceso:"Nombre del proceso", nombreTaller:"Nombre del taller",
@@ -606,9 +611,9 @@ export default function CotizadorProEstandar() {
       <main style={{ maxWidth:1100, margin:"0 auto", padding:"24px 16px" }}>
         {pestana==="cotizar"    && <PestanaCotizar    datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} tx={tx} cotEnEdicion={cotEnEdicion} onLimpiarEdicion={()=>setCotEnEdicion(null)} mostrarNotif={mostrarNotif} />}
         {pestana==="lista"      && <PestanaLista      datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} tx={tx} onEditarCompleto={handleEditarCompleto} mostrarNotif={mostrarNotif} setPestana={setPestana} />}
-        {pestana==="materiales" && <PestanaMateriales datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} />}
-        {pestana==="procesos"   && <PestanaProcesos   datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} />}
-        {pestana==="clientes"   && <PestanaClientes   datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} mostrarNotif={mostrarNotif} />}
+        {pestana==="materiales" && <PestanaMateriales datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} tx={tx} />}
+        {pestana==="procesos"   && <PestanaProcesos   datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} tx={tx} />}
+        {pestana==="clientes"   && <PestanaClientes   datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} tx={tx} mostrarNotif={mostrarNotif} />}
         {pestana==="config"     && <PestanaConfig     datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} tx={tx} />}
       </main>
     </div>
@@ -1066,21 +1071,21 @@ function PestanaLista({ datos, actualizarDatos, t, tamFuente, tx, onEditarComple
       {/* Pasos */}
       {[
         {
-          num:"1", icono:"🏭", titulo:"Configura tu taller",
+          num:"1", icono:"🏭", titulo:tx.paso1Tit,
           desc:"Agrega el nombre, logo, RFC y datos fiscales de tu taller. Aparecerán en todos tus PDFs.",
-          tab:"config", btnLabel:"Ir a Configuración",
+          tab:"config", btnLabel:{tx.irConfig||"Ir a Configuración"},
           listo: !!(datos.taller?.nombre),
         },
         {
-          num:"2", icono:"👥", titulo:"Agrega tu primer cliente",
+          num:"2", icono:"👥", titulo:tx.paso2Tit,
           desc:"Guarda los datos de tus clientes para cargarlos automáticamente al cotizar.",
-          tab:"clientes", btnLabel:"Ir a Clientes",
+          tab:"clientes", btnLabel:{tx.irClientes||"Ir a Clientes"},
           listo: (datos.clientes||[]).length > 0,
         },
         {
-          num:"3", icono:"💰", titulo:"Crea tu primera cotización",
+          num:"3", icono:"💰", titulo:tx.paso3Tit,
           desc:"Llena los datos del trabajo, agrega las partidas y genera un PDF profesional en segundos.",
-          tab:"cotizar", btnLabel:"Nueva Cotización",
+          tab:"cotizar", btnLabel:{tx.irNuevaCot||"Nueva Cotización"},
           listo: false,
         },
       ].map((paso, i) => (
@@ -1192,7 +1197,7 @@ function PestanaLista({ datos, actualizarDatos, t, tamFuente, tx, onEditarComple
               <div style={{ display:"flex", gap:8, justifyContent:"flex-end", marginTop:10, flexWrap:"wrap" as const }}>
                 <button onClick={()=>setShowVista(c)} style={{ padding:"5px 12px", borderRadius:6, border:`1px solid ${t.border}`, background:"transparent", color:t.textSub, cursor:"pointer", fontSize:12 }}>🖨 PDF</button>
                 <button onClick={()=>setModalEditar(c)} style={{ padding:"5px 12px", borderRadius:6, border:`1px solid ${t.accent}`, background:"transparent", color:t.accent, cursor:"pointer", fontSize:12 }}>✏️ Editar</button>
-                <button onClick={()=>eliminar(c.id)} style={{ padding:"5px 12px", borderRadius:6, border:`1px solid ${t.danger}`, background:"transparent", color:t.danger, cursor:"pointer", fontSize:12 }}>Eliminar</button>
+                <button onClick={()=>eliminar(c.id)} style={{ padding:"5px 12px", borderRadius:6, border:`1px solid ${t.danger}`, background:"transparent", color:t.danger, cursor:"pointer", fontSize:12 }}>{tx.eliminar}</button>
               </div>
             </div>
           </div>
@@ -1381,7 +1386,7 @@ function VistaPDF({ datos, lineasCalc, res, extras, folio, descripcion, nota, cl
 // ═══════════════════════════════════════════════════════════════════════════════
 // PESTAÑA: CATÁLOGO DE CLIENTES
 // ═══════════════════════════════════════════════════════════════════════════════
-function PestanaClientes({ datos, actualizarDatos, t, tamFuente, mostrarNotif }: any) {
+function PestanaClientes({ datos, actualizarDatos, t, tamFuente, tx, mostrarNotif }: any) {
   const [nuevo, setNuevo]     = useState({ empresa:"", nombre:"", email:"", tel:"", ciudad:"", rfc:"", razonSocial:"", direccionFiscal:"" });
   const [editId, setEditId]   = useState<number|null>(null);
   const [busca, setBusca]     = useState("");
@@ -1437,7 +1442,7 @@ function PestanaClientes({ datos, actualizarDatos, t, tamFuente, mostrarNotif }:
       <div style={{ background:t.card, borderRadius:12, border:`1px solid ${t.border}`, padding:24 }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
           <div style={{ fontWeight:700, fontSize:tamFuente+1, color:t.text }}>👥 Clientes ({clientes.length})</div>
-          <input style={{ ...inp, width:240 }} placeholder="Buscar…" value={busca} onChange={e=>setBusca(e.target.value)}/>
+          <input style={{ ...inp, width:240 }} placeholder={tx.buscar} value={busca} onChange={e=>setBusca(e.target.value)}/>
         </div>
         {clientesFiltrados.length === 0
           ? <div style={{ textAlign:"center", padding:40, color:t.textSub }}>{tx.sinClientesCat2}</div>
@@ -1457,7 +1462,7 @@ function PestanaClientes({ datos, actualizarDatos, t, tamFuente, mostrarNotif }:
                     </div>
                     <div style={{ display:"flex", gap:8 }}>
                       <button onClick={()=>setEditId(c.id)} style={{ padding:"4px 10px", borderRadius:6, border:`1px solid ${t.accent}`, background:"transparent", color:t.accent, cursor:"pointer", fontSize:12 }}>✏️ Editar</button>
-                      <button onClick={()=>eliminar(c.id)} style={{ padding:"4px 10px", borderRadius:6, border:`1px solid ${t.danger}`, background:"transparent", color:t.danger, cursor:"pointer", fontSize:12 }}>Eliminar</button>
+                      <button onClick={()=>eliminar(c.id)} style={{ padding:"4px 10px", borderRadius:6, border:`1px solid ${t.danger}`, background:"transparent", color:t.danger, cursor:"pointer", fontSize:12 }}>{tx.eliminar}</button>
                     </div>
                   </div>
                 )}
@@ -1474,18 +1479,18 @@ function EditarCliente({ c, t, tamFuente, inp, label, onGuardar, onCancelar }: a
   return (
     <div>
       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:10 }}>
-        <div><label style={label}>Empresa</label><input style={inp} value={d.empresa} onChange={e=>setD(p=>({...p,empresa:e.target.value}))}/></div>
+        <div><label style={label}>{tx.empresa}</label><input style={inp} value={d.empresa} onChange={e=>setD(p=>({...p,empresa:e.target.value}))}/></div>
         <div><label style={label}>{tx.contacto}</label><input style={inp} value={d.nombre} onChange={e=>setD(p=>({...p,nombre:e.target.value}))}/></div>
         <div><label style={label}>{tx.email}</label><input style={inp} value={d.email} onChange={e=>setD(p=>({...p,email:e.target.value}))}/></div>
         <div><label style={label}>{tx.telefono}</label><input style={inp} value={d.tel} onChange={e=>setD(p=>({...p,tel:e.target.value}))}/></div>
         <div><label style={label}>{tx.ciudad}</label><input style={inp} value={d.ciudad} onChange={e=>setD(p=>({...p,ciudad:e.target.value}))}/></div>
         <div><label style={label}>{tx.rfc}</label><input style={inp} value={d.rfc} onChange={e=>setD(p=>({...p,rfc:e.target.value.toUpperCase()}))}/></div>
         <div><label style={label}>{tx.razonSocial}</label><input style={inp} value={d.razonSocial} onChange={e=>setD(p=>({...p,razonSocial:e.target.value}))}/></div>
-        <div><label style={label}>Dir. Fiscal</label><input style={inp} value={d.direccionFiscal} onChange={e=>setD(p=>({...p,direccionFiscal:e.target.value}))}/></div>
+        <div><label style={label}>{tx.dirFiscalCorta}</label><input style={inp} value={d.direccionFiscal} onChange={e=>setD(p=>({...p,direccionFiscal:e.target.value}))}/></div>
       </div>
       <div style={{ display:"flex", gap:8 }}>
-        <button onClick={()=>onGuardar(d)} style={{ padding:"7px 16px", borderRadius:8, border:"none", background:t.accent, color:"#fff", fontWeight:700, cursor:"pointer", fontSize:tamFuente }}>Guardar</button>
-        <button onClick={onCancelar} style={{ padding:"7px 12px", borderRadius:8, border:`1px solid ${t.border}`, background:"transparent", color:t.textSub, cursor:"pointer", fontSize:tamFuente }}>Cancelar</button>
+        <button onClick={()=>onGuardar(d)} style={{ padding:"7px 16px", borderRadius:8, border:"none", background:t.accent, color:"#fff", fontWeight:700, cursor:"pointer", fontSize:tamFuente }}>{tx.guardar}</button>
+        <button onClick={onCancelar} style={{ padding:"7px 12px", borderRadius:8, border:`1px solid ${t.border}`, background:"transparent", color:t.textSub, cursor:"pointer", fontSize:tamFuente }}>{tx.cancelar}</button>
       </div>
     </div>
   );
@@ -1494,7 +1499,7 @@ function EditarCliente({ c, t, tamFuente, inp, label, onGuardar, onCancelar }: a
 // ═══════════════════════════════════════════════════════════════════════════════
 // PESTAÑA: MATERIALES
 // ═══════════════════════════════════════════════════════════════════════════════
-function PestanaMateriales({ datos, actualizarDatos, t, tamFuente }: any) {
+function PestanaMateriales({ datos, actualizarDatos, t, tamFuente, tx }: any) {
   const [nuevo, setNuevo] = useState({ nombre:"", precio:"" });
   const inp = { background:t.input, border:`1px solid ${t.border}`, borderRadius:8, padding:"9px 12px", color:t.text, fontSize:tamFuente, width:"100%", outline:"none" };
 
@@ -1507,10 +1512,10 @@ function PestanaMateriales({ datos, actualizarDatos, t, tamFuente }: any) {
 
   return (
     <div style={{ background:t.card, borderRadius:12, border:`1px solid ${t.border}`, padding:24 }}>
-      <div style={{ fontWeight:700, fontSize:tamFuente+2, marginBottom:20, color:t.text }}>🔩 Catálogo de Materiales</div>
+      <div style={{ fontWeight:700, fontSize:tamFuente+2, marginBottom:20, color:t.text }}>{`🔩 ${tx.catalogoMat}`}</div>
       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr auto", gap:12, marginBottom:24 }}>
         <input style={inp} placeholder=tx.nombreMaterial value={nuevo.nombre} onChange={e=>setNuevo(p=>({...p,nombre:e.target.value}))}/>
-        <input style={inp} type="number" placeholder="Precio por kg (MXN)" value={nuevo.precio} onChange={e=>setNuevo(p=>({...p,precio:e.target.value}))}/>
+        <input style={inp} type="number" placeholder={tx.priceKg} value={nuevo.precio} onChange={e=>setNuevo(p=>({...p,precio:e.target.value}))}/>
         <button onClick={agregar} style={{ padding:"9px 20px", borderRadius:8, border:"none", background:t.accent, color:"#fff", fontWeight:700, cursor:"pointer" }}>+ Agregar</button>
       </div>
       <table style={{ width:"100%", borderCollapse:"collapse" as const, fontSize:tamFuente }}>
@@ -1521,7 +1526,7 @@ function PestanaMateriales({ datos, actualizarDatos, t, tamFuente }: any) {
           <tr key={m.id}>
             <td style={{ padding:"10px 12px", color:t.text }}>{m.nombre}</td>
             <td style={{ padding:"10px 12px", color:t.text }}>{fmtMXN(m.precio)}/kg</td>
-            <td style={{ padding:"10px 12px" }}><button onClick={()=>eliminar(m.id)} style={{ background:"none", border:"none", color:t.danger, cursor:"pointer" }}>Eliminar</button></td>
+            <td style={{ padding:"10px 12px" }}><button onClick={()=>eliminar(m.id)} style={{ background:"none", border:"none", color:t.danger, cursor:"pointer" }}>{tx.eliminar}</button></td>
           </tr>
         ))}</tbody>
       </table>
@@ -1532,7 +1537,7 @@ function PestanaMateriales({ datos, actualizarDatos, t, tamFuente }: any) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // PESTAÑA: PROCESOS
 // ═══════════════════════════════════════════════════════════════════════════════
-function PestanaProcesos({ datos, actualizarDatos, t, tamFuente }: any) {
+function PestanaProcesos({ datos, actualizarDatos, t, tamFuente, tx }: any) {
   const [nuevo, setNuevo] = useState({ nombre:"", tarifa:"" });
   const inp = { background:t.input, border:`1px solid ${t.border}`, borderRadius:8, padding:"9px 12px", color:t.text, fontSize:tamFuente, width:"100%", outline:"none" };
 
@@ -1545,21 +1550,21 @@ function PestanaProcesos({ datos, actualizarDatos, t, tamFuente }: any) {
 
   return (
     <div style={{ background:t.card, borderRadius:12, border:`1px solid ${t.border}`, padding:24 }}>
-      <div style={{ fontWeight:700, fontSize:tamFuente+2, marginBottom:20, color:t.text }}>⚙️ Catálogo de Procesos</div>
+      <div style={{ fontWeight:700, fontSize:tamFuente+2, marginBottom:20, color:t.text }}>{`⚙️ ${tx.catalogoProc}`}</div>
       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr auto", gap:12, marginBottom:24 }}>
         <input style={inp} placeholder=tx.nombreProceso value={nuevo.nombre} onChange={e=>setNuevo(p=>({...p,nombre:e.target.value}))}/>
-        <input style={inp} type="number" placeholder="Tarifa por hora (MXN)" value={nuevo.tarifa} onChange={e=>setNuevo(p=>({...p,tarifa:e.target.value}))}/>
+        <input style={inp} type="number" placeholder={tx.tarifaHr} value={nuevo.tarifa} onChange={e=>setNuevo(p=>({...p,tarifa:e.target.value}))}/>
         <button onClick={agregar} style={{ padding:"9px 20px", borderRadius:8, border:"none", background:t.accent, color:"#fff", fontWeight:700, cursor:"pointer" }}>+ Agregar</button>
       </div>
       <table style={{ width:"100%", borderCollapse:"collapse" as const, fontSize:tamFuente }}>
         <thead><tr style={{ color:t.textSub }}>
-          {["Proceso / Máquina","Tarifa/hr",""].map(h=><th key={h} style={{ padding:"8px 12px", textAlign:"left" as const, borderBottom:`1px solid ${t.border}`, fontWeight:600 }}>{h}</th>)}
+          {[tx.processoMaq, tx.tarifaHrCol, ""].map(h=><th key={h} style={{ padding:"8px 12px", textAlign:"left" as const, borderBottom:`1px solid ${t.border}`, fontWeight:600 }}>{h}</th>)}
         </tr></thead>
         <tbody>{datos.procesos.map((p: any)=>(
           <tr key={p.id}>
             <td style={{ padding:"10px 12px", color:t.text }}>{p.nombre}</td>
             <td style={{ padding:"10px 12px", color:t.text }}>{fmtMXN(p.tarifa)}/hr</td>
-            <td style={{ padding:"10px 12px" }}><button onClick={()=>eliminar(p.id)} style={{ background:"none", border:"none", color:t.danger, cursor:"pointer" }}>Eliminar</button></td>
+            <td style={{ padding:"10px 12px" }}><button onClick={()=>eliminar(p.id)} style={{ background:"none", border:"none", color:t.danger, cursor:"pointer" }}>{tx.eliminar}</button></td>
           </tr>
         ))}</tbody>
       </table>
