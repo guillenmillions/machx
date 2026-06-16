@@ -1,6 +1,252 @@
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@supabase/supabase-js";
 
+const TEMAS: Record<string, Record<string, string>> = {
+  claro: {
+    // Claro Profesional — diseño corporativo, optimizado para impresión
+    bg:"#f0f2f5",        // fondo general gris muy suave
+    card:"#ffffff",       // tarjetas blancas puras
+    border:"#dde1e9",    // bordes sutiles gris azulado
+    text:"#1a1f2e",      // texto principal casi negro, máximo contraste
+    textSub:"#5a6278",   // texto secundario gris medio legible
+    accent:"#1a56db",    // azul corporativo sólido (no saturado)
+    accentHover:"#1344b8",
+    success:"#0e7a3f",   // verde oscuro legible
+    danger:"#c41e1e",    // rojo legible
+    input:"#f7f8fa",     // inputs gris muy claro
+    header:"#ffffff",    // header blanco con sombra
+    acento:"#0e7a3f",
+    btnOrange:"#d4500a", // naranja oscuro (imprime bien)
+  },
+  oscuro: {
+    // Oscuro Industrial — para trabajo nocturno o talleres con poca luz
+    bg:"#0f1117", card:"#1a1d27", border:"#2a2d3e",
+    text:"#e8eaf0", textSub:"#8b8fa8", accent:"#4f6ef7",
+    accentHover:"#3d5ce0", success:"#22c55e", danger:"#ef4444",
+    input:"#12151f", header:"#13161f",
+    acento:"#1B9E75", btnOrange:"#f97316",
+  },
+  marino: {
+    // Azul Marino — intermedio, buena legibilidad en monitores
+    bg:"#0a1628", card:"#0f2040", border:"#1a3a6b",
+    text:"#cdd8f0", textSub:"#7a96c4", accent:"#38bdf8",
+    accentHover:"#0ea5e9", success:"#34d399", danger:"#f87171",
+    input:"#0d1c36", header:"#0d1c36",
+    acento:"#38bdf8", btnOrange:"#38bdf8",
+  },
+};
+
+const T18N: Record<string, Record<string, string>> = {
+  es: {
+    // PDF
+    cotizacion:"COTIZACIÓN", cliente:"Cliente", condiciones:"Condiciones",
+    entrega:"Entrega", pago:"Pago", vigencia:"Vigencia",
+    descripcion:"Descripción de Servicios", cant:"Cant.", unidad:"Unidad",
+    pUnitario:"P. Unitario", total:"Total", subtotal:"Subtotal",
+    notas:"Notas", elaboro:"Elaboró", autorizo:"Autorizó / Cliente",
+    dias:"días", porConfirmar:"Por confirmar", attn:"Attn:", plano:"Plano:",
+    impuesto:"IVA", sinImpuesto:"Precio sin impuestos",
+    flete:"Fletes / Servicios adicionales",
+    // Navegación
+    guardar:"Guardar Cotización", nuevaCot:"Nueva Cotización",
+    misCots:"Mis Cotizaciones", materiales:"Materiales",
+    procesos:"Procesos", configuracion:"Configuración", clientes:"Clientes",
+    // Estados cotización
+    borrador:"Borrador", enviada:"Enviada", aprobada:"Aprobada",
+    rechazada:"Rechazada", enProceso:"En Proceso", entregada:"Entregada",
+    // Unidades
+    pza:"pza", kg:"kg", hr:"hr", m:"m", ft:"ft", pulg:"pulg", lote:"lote",
+    // Interfaz interna
+    datosCli:"Datos del Cliente", datosCot:"Datos de la Cotización",
+    partidas:"Partidas del trabajo", desglose:"Desglose de costos",
+    resultado:"Resultado", notaCliente:"Nota para el cliente",
+    cargarCatalogo:"Cargar del catálogo", guardarCatalogo:"Guardar en catálogo",
+    sinClientes:"Sin clientes en catálogo.", agregarPartida:"+ Agregar partida",
+    detalleInterno:"Detalle interno del taller", extrasFlete:"Extras / Fletes",
+    laborTotal:"Labor total", materialTotal:"Material total",
+    costoDirecto:"Costo Directo",
+    gastosDir:"Gastos Directos", gastosSGV:"Gastos SGV",
+    costoEmpresa:"Costo Empresa", precioVenta:"PRECIO DE VENTA",
+    utilidad:"Utilidad", margenReal:"Margen real", vistaPDF:"Vista / PDF",
+    // Clientes
+    agregarCliente:"+ Agregar cliente", sinClientesCat:"Sin clientes.",
+    agregarClienteTit:"Agregar cliente al catálogo",
+    seleccionarCliente:"Seleccionar cliente",
+    // Labels campos
+    empresa:"Empresa *", contacto:"Contacto", email:"Email",
+    telefono:"Teléfono", ciudad:"Ciudad", rfc:"RFC",
+    razonSocial:"Razón Social", dirFiscal:"Dirección Fiscal",
+    datosFiscales:"DATOS FISCALES (OPCIONAL)",
+    folio:"Folio", validez:"Validez", monedaLbl:"Moneda",
+    tiempoEntrega:"Tiempo de Entrega", condPago:"Condiciones de Pago",
+    idiomaPDF:"Idioma del PDF", descTrabajo:"Descripción del trabajo",
+    proceso:"Proceso", materialLbl:"Material", horas:"Horas c/u",
+    kgPzas:"Kg c/u", cantidad:"Cantidad",
+    // Placeholders
+    phEmpresa:"Nombre de la empresa", phContacto:"Nombre del contacto",
+    phEmail:"correo@empresa.com", phTel:"+52 899 000 0000",
+    phCiudad:"Ciudad", phRFC:"RFC del cliente",
+    phRazon:"Razón social completa", phDir:"Calle, Colonia, C.P., Ciudad",
+    phEntrega:"Ej: 10 días hábiles",
+    phDesc:"Ej: Fabricación de eje de transmisión AISI 1018",
+    phPartida:"Ej: Perno M12, Eje de transmisión, Soporte...",
+    phProceso:"Seleccionar proceso…", phMaterial:"Seleccionar material…",
+    phNota:"Ej: Tiempo de entrega 5 días hábiles",
+    // Configuración
+    datosTaller:"Datos del Taller", rfcTaller:"RFC del taller",
+    pctFormula:"Porcentajes de la Fórmula",
+    gastosDirectosLabel:"Gastos Directos %", gastosSGVLabel:"Gastos SGV %",
+    folioCot:"Folio de Cotizaciones", monedaTC:"Moneda y Tipo de Cambio",
+    idiomaSistema:"Idioma del sistema y PDF", apariencia:"Apariencia",
+    impuestoVentas:"Impuesto sobre Ventas",
+    // Pagos
+    pagoPorDefecto:"Anticipo 50% / Liquidación a entrega",
+    // Onboarding
+    bienvenido:"Bienvenido a CotizadorPRO",
+    paso1Tit:"Configura tu taller", paso2Tit:"Agrega tu primer cliente",
+    paso3Tit:"Crea tu primera cotización",
+  },
+  en: {
+    // PDF
+    cotizacion:"QUOTATION", cliente:"Bill To", condiciones:"Terms",
+    entrega:"Delivery", pago:"Payment", vigencia:"Valid for",
+    descripcion:"Services Description", cant:"Qty.", unidad:"Unit",
+    pUnitario:"Unit Price", total:"Total", subtotal:"Subtotal",
+    notas:"Notes", elaboro:"Prepared by", autorizo:"Authorized / Client",
+    dias:"days", porConfirmar:"To be confirmed", attn:"Attn:", plano:"Dwg:",
+    impuesto:"Tax", sinImpuesto:"Price excludes taxes",
+    flete:"Freight & Additional Services",
+    // Navigation
+    guardar:"Save Quote", nuevaCot:"New Quote",
+    misCots:"My Quotes", materiales:"Materials",
+    procesos:"Processes", configuracion:"Settings", clientes:"Customers",
+    // Quote status
+    borrador:"Draft", enviada:"Sent", aprobada:"Approved",
+    rechazada:"Rejected", enProceso:"In Progress", entregada:"Delivered",
+    // Units
+    pza:"pc", kg:"kg", hr:"hr", m:"m", ft:"ft", pulg:"in", lote:"lot",
+    // Interface
+    datosCli:"Customer Data", datosCot:"Quote Details",
+    partidas:"Work Items", desglose:"Cost Breakdown",
+    resultado:"Result", notaCliente:"Note to customer",
+    cargarCatalogo:"Load from catalog", guardarCatalogo:"Save to catalog",
+    sinClientes:"No customers in catalog.", agregarPartida:"+ Add item",
+    detalleInterno:"Internal shop detail", extrasFlete:"Freight & Extras",
+    laborTotal:"Total labor", materialTotal:"Total material",
+    costoDirecto:"Direct Cost",
+    gastosDir:"Direct Overhead", gastosSGV:"SG&A Expenses",
+    costoEmpresa:"Total Cost", precioVenta:"SALE PRICE",
+    utilidad:"Profit", margenReal:"Gross margin", vistaPDF:"Preview / PDF",
+    // Customers
+    agregarCliente:"+ Add customer", sinClientesCat:"No customers.",
+    agregarClienteTit:"Add customer to catalog",
+    seleccionarCliente:"Select customer",
+    // Field labels
+    empresa:"Company *", contacto:"Contact", email:"Email",
+    telefono:"Phone", ciudad:"City", rfc:"Tax ID",
+    razonSocial:"Legal Name", dirFiscal:"Billing Address",
+    datosFiscales:"TAX INFORMATION (OPTIONAL)",
+    folio:"Quote No.", validez:"Valid for", monedaLbl:"Currency",
+    tiempoEntrega:"Lead Time", condPago:"Payment Terms",
+    idiomaPDF:"PDF Language", descTrabajo:"Work description",
+    proceso:"Process", materialLbl:"Material", horas:"Hours ea.",
+    kgPzas:"Kg ea.", cantidad:"Quantity",
+    // Placeholders
+    phEmpresa:"Company name", phContacto:"Contact name",
+    phEmail:"email@company.com", phTel:"+1 000 000 0000",
+    phCiudad:"City", phRFC:"Customer Tax ID",
+    phRazon:"Full legal name", phDir:"Street, City, State, ZIP",
+    phEntrega:"e.g. 10 business days",
+    phDesc:"e.g. Transmission shaft AISI 1018",
+    phPartida:"e.g. Bolt M12, Drive shaft, Bracket...",
+    phProceso:"Select process…", phMaterial:"Select material…",
+    phNota:"e.g. Delivery time 5 business days",
+    // Settings
+    datosTaller:"Shop Data", rfcTaller:"Tax ID",
+    pctFormula:"Formula Percentages",
+    gastosDirectosLabel:"Direct Overhead %", gastosSGVLabel:"SG&A %",
+    folioCot:"Quote Numbering", monedaTC:"Currency & Exchange Rate",
+    idiomaSistema:"System & PDF Language", apariencia:"Appearance",
+    impuestoVentas:"Sales Tax",
+    // Payment
+    pagoPorDefecto:"50% advance / balance on delivery",
+    // Onboarding
+    bienvenido:"Welcome to CotizadorPRO",
+    paso1Tit:"Set up your shop", paso2Tit:"Add your first customer",
+    paso3Tit:"Create your first quote",
+  },
+  pt: {
+    // PDF
+    cotizacion:"COTAÇÃO", cliente:"Cliente", condiciones:"Condições",
+    entrega:"Entrega", pago:"Pagamento", vigencia:"Válido por",
+    descripcion:"Descrição dos Serviços", cant:"Qtd.", unidad:"Unidade",
+    pUnitario:"P. Unitário", total:"Total", subtotal:"Subtotal",
+    notas:"Observações", elaboro:"Elaborado por", autorizo:"Autorizado / Cliente",
+    dias:"dias", porConfirmar:"A confirmar", attn:"A/C:", plano:"Des.:",
+    impuesto:"ICMS/ISS", sinImpuesto:"Preço sem impostos",
+    flete:"Frete / Serviços Adicionais",
+    // Navegação
+    guardar:"Salvar Cotação", nuevaCot:"Nova Cotação",
+    misCots:"Minhas Cotações", materiales:"Materiais",
+    procesos:"Processos", configuracion:"Configurações", clientes:"Clientes",
+    // Estados
+    borrador:"Rascunho", enviada:"Enviada", aprobada:"Aprovada",
+    rechazada:"Rejeitada", enProceso:"Em Produção", entregada:"Entregue",
+    // Unidades
+    pza:"pc", kg:"kg", hr:"hr", m:"m", ft:"ft", pulg:"pol", lote:"lote",
+    // Interface
+    datosCli:"Dados do Cliente", datosCot:"Detalhes da Cotação",
+    partidas:"Itens do Trabalho", desglose:"Detalhamento de Custos",
+    resultado:"Resultado", notaCliente:"Observação ao cliente",
+    cargarCatalogo:"Carregar do catálogo", guardarCatalogo:"Salvar no catálogo",
+    sinClientes:"Sem clientes no catálogo.", agregarPartida:"+ Adicionar item",
+    detalleInterno:"Detalhe interno da oficina", extrasFlete:"Frete / Extras",
+    laborTotal:"Total mão de obra", materialTotal:"Total material",
+    costoDirecto:"Custo Direto",
+    gastosDir:"Despesas Diretas", gastosSGV:"Despesas G&A",
+    costoEmpresa:"Custo Total", precioVenta:"PREÇO DE VENDA",
+    utilidad:"Lucro", margenReal:"Margem bruta", vistaPDF:"Visualizar / PDF",
+    // Clientes
+    agregarCliente:"+ Adicionar cliente", sinClientesCat:"Sem clientes.",
+    agregarClienteTit:"Adicionar cliente ao catálogo",
+    seleccionarCliente:"Selecionar cliente",
+    // Campos
+    empresa:"Empresa *", contacto:"Contato", email:"E-mail",
+    telefono:"Telefone", ciudad:"Cidade", rfc:"CNPJ/CPF",
+    razonSocial:"Razão Social", dirFiscal:"Endereço Fiscal",
+    datosFiscales:"DADOS FISCAIS (OPCIONAL)",
+    folio:"Nº Cotação", validez:"Válido por", monedaLbl:"Moeda",
+    tiempoEntrega:"Prazo de Entrega", condPago:"Condições de Pagamento",
+    idiomaPDF:"Idioma do PDF", descTrabajo:"Descrição do trabalho",
+    proceso:"Processo", materialLbl:"Material", horas:"Horas un.",
+    kgPzas:"Kg un.", cantidad:"Quantidade",
+    // Placeholders
+    phEmpresa:"Nome da empresa", phContacto:"Nome do contato",
+    phEmail:"email@empresa.com", phTel:"+55 00 00000-0000",
+    phCiudad:"Cidade", phRFC:"CNPJ do cliente",
+    phRazon:"Razão social completa", phDir:"Rua, Bairro, CEP, Cidade",
+    phEntrega:"Ex: 10 dias úteis",
+    phDesc:"Ex: Eixo de transmissão AISI 1018",
+    phPartida:"Ex: Parafuso M12, Eixo, Suporte...",
+    phProceso:"Selecionar processo…", phMaterial:"Selecionar material…",
+    phNota:"Ex: Prazo de entrega 5 dias úteis",
+    // Configuração
+    datosTaller:"Dados da Oficina", rfcTaller:"CNPJ/CPF",
+    pctFormula:"Percentuais da Fórmula",
+    gastosDirectosLabel:"Despesas Diretas %", gastosSGVLabel:"G&A %",
+    folioCot:"Numeração de Cotações", monedaTC:"Moeda e Taxa de Câmbio",
+    idiomaSistema:"Idioma do sistema e PDF", apariencia:"Aparência",
+    impuestoVentas:"Impostos sobre Vendas",
+    // Pagamento
+    pagoPorDefecto:"50% antecipado / saldo na entrega",
+    // Onboarding
+    bienvenido:"Bem-vindo ao CotizadorPRO",
+    paso1Tit:"Configure sua oficina", paso2Tit:"Adicione seu primeiro cliente",
+    paso3Tit:"Crie sua primeira cotação",
+  },
+};
+
+
 // ─── SUPABASE ─────────────────────────────────────────────────────────────────
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
@@ -21,30 +267,6 @@ const MONEDAS: Record<string, { id: string; label: string; simbolo: string; loca
 };
 
 // ─── TEXTOS BILINGÜE ──────────────────────────────────────────────────────────
-const T18N: Record<string, Record<string, string>> = {
-  es: {
-    cotizacion:"COTIZACIÓN", cliente:"Cliente", condiciones:"Condiciones",
-    entrega:"Entrega", pago:"Pago", vigencia:"Vigencia",
-    descripcion:"Descripción de Servicios", cant:"Cant.", unidad:"Unidad",
-    pUnitario:"P. Unitario", total:"Total", subtotal:"Subtotal",
-    notas:"Notas", elaboro:"Elaboró", autorizo:"Autorizó / Cliente",
-    dias:"días", porConfirmar:"Por confirmar", attn:"Attn:", plano:"Plano:",
-    guardar:"Guardar Cotización", nuevaCot:"Nueva Cotización",
-    misCots:"Mis Cotizaciones", materiales:"Materiales",
-    procesos:"Procesos", configuracion:"Configuración",
-  },
-  en: {
-    cotizacion:"QUOTATION", cliente:"Bill To", condiciones:"Terms",
-    entrega:"Delivery", pago:"Payment", vigencia:"Valid for",
-    descripcion:"Services Description", cant:"Qty.", unidad:"Unit",
-    pUnitario:"Unit Price", total:"Total", subtotal:"Subtotal",
-    notas:"Notes", elaboro:"Prepared by", autorizo:"Authorized / Client",
-    dias:"days", porConfirmar:"To be confirmed", attn:"Attn:", plano:"Dwg:",
-    guardar:"Save Quote", nuevaCot:"New Quote",
-    misCots:"My Quotes", materiales:"Materials",
-    procesos:"Processes", configuracion:"Settings",
-  },
-};
 
 // ─── FÓRMULA DE CÁLCULO (no modificar) ───────────────────────────────────────
 function calcular(labor: number, material: number, extras: number, pctGD: number, pctSGV: number, pctMargen: number) {
@@ -102,40 +324,6 @@ async function fetchTipoCambio(): Promise<number> {
 }
 
 
-const TEMAS: Record<string, Record<string, string>> = {
-  claro: {
-    // Claro Profesional — diseño corporativo, optimizado para impresión
-    bg:"#f0f2f5",        // fondo general gris muy suave
-    card:"#ffffff",       // tarjetas blancas puras
-    border:"#dde1e9",    // bordes sutiles gris azulado
-    text:"#1a1f2e",      // texto principal casi negro, máximo contraste
-    textSub:"#5a6278",   // texto secundario gris medio legible
-    accent:"#1a56db",    // azul corporativo sólido (no saturado)
-    accentHover:"#1344b8",
-    success:"#0e7a3f",   // verde oscuro legible
-    danger:"#c41e1e",    // rojo legible
-    input:"#f7f8fa",     // inputs gris muy claro
-    header:"#ffffff",    // header blanco con sombra
-    acento:"#0e7a3f",
-    btnOrange:"#d4500a", // naranja oscuro (imprime bien)
-  },
-  oscuro: {
-    // Oscuro Industrial — para trabajo nocturno o talleres con poca luz
-    bg:"#0f1117", card:"#1a1d27", border:"#2a2d3e",
-    text:"#e8eaf0", textSub:"#8b8fa8", accent:"#4f6ef7",
-    accentHover:"#3d5ce0", success:"#22c55e", danger:"#ef4444",
-    input:"#12151f", header:"#13161f",
-    acento:"#1B9E75", btnOrange:"#f97316",
-  },
-  marino: {
-    // Azul Marino — intermedio, buena legibilidad en monitores
-    bg:"#0a1628", card:"#0f2040", border:"#1a3a6b",
-    text:"#cdd8f0", textSub:"#7a96c4", accent:"#38bdf8",
-    accentHover:"#0ea5e9", success:"#34d399", danger:"#f87171",
-    input:"#0d1c36", header:"#0d1c36",
-    acento:"#38bdf8", btnOrange:"#38bdf8",
-  },
-};
 
 // ─── DATOS INICIALES ──────────────────────────────────────────────────────────
 const DATOS_INICIALES = {
@@ -168,81 +356,100 @@ const DATOS_INICIALES = {
 // PANTALLA DE LOGIN
 // ═══════════════════════════════════════════════════════════════════════════════
 function PantallaLogin() {
-  const [modo, setModo]       = useState<"login"|"registro"|"reset">("login");
-  const [email, setEmail]     = useState("");
-  const [password, setPass]   = useState("");
-  const [cargando, setCarg]   = useState(false);
-  const [mensaje, setMsg]     = useState<{tipo:string;texto:string}|null>(null);
+  const [modo, setModo]     = useState<"login"|"registro"|"reset">("login");
+  const [email, setEmail]   = useState("");
+  const [password, setPass] = useState("");
+  const [cargando, setCarg] = useState(false);
+  const [mensaje, setMsg]   = useState<{tipo:string;texto:string}|null>(null);
+  const [lang, setLang]     = useState<"es"|"en"|"pt">(() => {
+    try { return (localStorage.getItem("cot_lang") as any) || "es"; } catch { return "es"; }
+  });
   const t = TEMAS.oscuro;
+
+  // Textos locales — sin dependencias externas
+  const LX: Record<string, Record<string,string>> = {
+    es: { sub:"Estándar — Sistema de Cotización Industrial", noAcc:"¿No tienes cuenta?", link:"Adquiere tu licencia aquí →", tab1:"Iniciar sesión", tab2:"Registrarse", em:"Correo electrónico", pw:"Contraseña (mínimo 6 caracteres)", b1:"Entrar", b2:"Crear cuenta", b3:"Enviar enlace", proc:"Procesando...", fgt:"¿Olvidaste tu contraseña?", back:"← Volver", rst:"Ingresa tu correo para recibir el enlace de recuperación.", ePass:"Correo o contraseña incorrectos.", okReg:"¡Cuenta creada! Revisa tu correo para confirmar.", okRst:"Te enviamos un enlace para restablecer tu contraseña." },
+    en: { sub:"Standard — Industrial Quoting System", noAcc:"Don't have an account?", link:"Get your license here →", tab1:"Sign in", tab2:"Sign up", em:"Email address", pw:"Password (minimum 6 characters)", b1:"Sign in", b2:"Create account", b3:"Send link", proc:"Processing...", fgt:"Forgot your password?", back:"← Back", rst:"Enter your email to receive a password reset link.", ePass:"Incorrect email or password.", okReg:"Account created! Check your email to confirm.", okRst:"We sent you a link to reset your password." },
+    pt: { sub:"Padrão — Sistema de Cotação Industrial", noAcc:"Não tem uma conta?", link:"Adquira sua licença aqui →", tab1:"Entrar", tab2:"Cadastrar", em:"E-mail", pw:"Senha (mínimo 6 caracteres)", b1:"Entrar", b2:"Criar conta", b3:"Enviar link", proc:"Processando...", fgt:"Esqueceu sua senha?", back:"← Voltar", rst:"Digite seu e-mail para receber o link de recuperação.", ePass:"E-mail ou senha incorretos.", okReg:"Conta criada! Verifique seu e-mail para confirmar.", okRst:"Enviamos um link para redefinir sua senha." },
+  };
+  const lx = LX[lang] || LX.es;
+
+  function changeLang(l: "es"|"en"|"pt") {
+    setLang(l); setMsg(null);
+    try { localStorage.setItem("cot_lang", l); } catch {}
+  }
 
   async function handleLogin(e: any) {
     e.preventDefault(); setCarg(true); setMsg(null);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) setMsg({ tipo:"error", texto:"Correo o contraseña incorrectos." });
+    if (error) setMsg({ tipo:"error", texto: lx.ePass });
     setCarg(false);
   }
   async function handleRegistro(e: any) {
     e.preventDefault(); setCarg(true); setMsg(null);
     const { error } = await supabase.auth.signUp({ email, password });
     if (error) setMsg({ tipo:"error", texto: error.message });
-    else setMsg({ tipo:"ok", texto:"¡Cuenta creada! Revisa tu correo para confirmar." });
+    else setMsg({ tipo:"ok", texto: lx.okReg });
     setCarg(false);
   }
   async function handleReset(e: any) {
     e.preventDefault(); setCarg(true); setMsg(null);
     const { error } = await supabase.auth.resetPasswordForEmail(email);
     if (error) setMsg({ tipo:"error", texto: error.message });
-    else setMsg({ tipo:"ok", texto:"Te enviamos un enlace para restablecer tu contraseña." });
+    else setMsg({ tipo:"ok", texto: lx.okRst });
     setCarg(false);
   }
 
-  const inp  = { width:"100%", padding:"12px 14px", borderRadius:8, border:`1px solid ${t.border}`, background:t.input, color:t.text, fontSize:15, outline:"none", boxSizing:"border-box" as const };
-  const btn  = { width:"100%", padding:"13px", borderRadius:8, border:"none", background:t.accent, color:"#fff", fontSize:16, fontWeight:700, cursor:cargando?"not-allowed":"pointer", opacity:cargando?0.7:1 };
+  const inp = { width:"100%", padding:"12px 14px", borderRadius:8, border:`1px solid ${t.border}`, background:t.input, color:t.text, fontSize:15, outline:"none", boxSizing:"border-box" as const };
+  const btn = { width:"100%", padding:"13px", borderRadius:8, border:"none", background:t.accent, color:"#fff", fontSize:16, fontWeight:700, cursor:cargando?"not-allowed":"pointer", opacity:cargando?0.7:1 };
 
   return (
-    <div style={{ minHeight:"100vh", background:"linear-gradient(135deg, #0f1117 0%, #1a1d27 50%, #0f1117 100%)", display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"'IBM Plex Sans',sans-serif" }}>
-      <div style={{ width:400, background:t.card, borderRadius:16, border:`1px solid ${t.border}`, padding:40 }}>
+    <div style={{ minHeight:"100vh", background:"linear-gradient(135deg,#0f1117 0%,#1a1d27 50%,#0f1117 100%)", display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"'IBM Plex Sans',sans-serif" }}>
+      <div style={{ width:420, background:t.card, borderRadius:16, border:`1px solid ${t.border}`, padding:40 }}>
+        {/* Selector idioma */}
+        <div style={{ display:"flex", justifyContent:"flex-end", marginBottom:16, gap:6 }}>
+          {(["es","en","pt"] as const).map(l=>(
+            <button key={l} onClick={()=>changeLang(l)} style={{ padding:"4px 12px", borderRadius:20, border:`1px solid ${lang===l?t.accent:t.border}`, background:lang===l?t.accent:"transparent", color:lang===l?"#fff":t.textSub, cursor:"pointer", fontSize:12, fontWeight:600 }}>
+              {l==="es"?"🇲🇽 ES":l==="en"?"🇺🇸 EN":"🇧🇷 PT"}
+            </button>
+          ))}
+        </div>
         <div style={{ textAlign:"center", marginBottom:32 }}>
           <div style={{ display:"inline-flex", alignItems:"center", justifyContent:"center", width:56, height:56, borderRadius:14, background:t.accent, marginBottom:16, fontSize:26 }}>⚙️</div>
           <div style={{ fontSize:22, fontWeight:800, color:t.text }}>CotizadorPRO</div>
-          <div style={{ fontSize:13, color:t.textSub, marginTop:4 }}>Estándar — Sistema de Cotización Industrial</div>
+          <div style={{ fontSize:13, color:t.textSub, marginTop:4 }}>{lx.sub}</div>
           <div style={{ fontSize:11, color:"#475569", marginTop:8, lineHeight:1.5 }}>
-            ¿No tienes cuenta?{" "}
-            <a href="https://hotmart.com/es/marketplace/productos/cotizadorpro-estandar-sistema-de-cotizacion-para-talleres-de-maquinado/G106237955N"
-              target="_blank" rel="noopener noreferrer"
-              style={{ color:"#60a5fa", textDecoration:"none", fontWeight:600 }}>
-              Adquiere tu licencia aquí →
-            </a>
+            {lx.noAcc}{" "}
+            <a href="https://hotmart.com/es/marketplace/productos/cotizadorpro-estandar-sistema-de-cotizacion-para-talleres-de-maquinado/G106237955N" target="_blank" rel="noopener noreferrer" style={{ color:"#60a5fa", textDecoration:"none", fontWeight:600 }}>{lx.link}</a>
           </div>
         </div>
-        {modo !== "reset" && (
+        {modo!=="reset" && (
           <div style={{ display:"flex", marginBottom:28, background:t.input, borderRadius:8, padding:4 }}>
-            {(["login","registro"] as const).map(m => (
-              <button key={m} onClick={() => { setModo(m); setMsg(null); }} style={{ flex:1, padding:"9px 0", border:"none", borderRadius:6, cursor:"pointer", background:modo===m?t.accent:"transparent", color:modo===m?"#fff":t.textSub, fontWeight:600, fontSize:14 }}>
-                {m === "login" ? "Iniciar sesión" : "Registrarse"}
+            {(["login","registro"] as const).map(m=>(
+              <button key={m} onClick={()=>{setModo(m);setMsg(null);}} style={{ flex:1, padding:"9px 0", border:"none", borderRadius:6, cursor:"pointer", background:modo===m?t.accent:"transparent", color:modo===m?"#fff":t.textSub, fontWeight:600, fontSize:14 }}>
+                {m==="login"?lx.tab1:lx.tab2}
               </button>
             ))}
           </div>
         )}
         <form onSubmit={modo==="login"?handleLogin:modo==="registro"?handleRegistro:handleReset}>
           <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
-            {modo === "reset" && <div style={{ color:t.textSub, fontSize:14 }}>Ingresa tu correo para recibir el enlace de recuperación.</div>}
-            <input style={inp} type="email" placeholder="Correo electrónico" value={email} onChange={e=>setEmail(e.target.value)} required />
-            {modo !== "reset" && <input style={inp} type="password" placeholder="Contraseña (mínimo 6 caracteres)" value={password} onChange={e=>setPass(e.target.value)} required minLength={6} />}
-            <button type="submit" style={btn} disabled={cargando}>{cargando?"Procesando...":modo==="login"?"Entrar":modo==="registro"?"Crear cuenta":"Enviar enlace"}</button>
+            {modo==="reset"&&<div style={{ color:t.textSub, fontSize:14 }}>{lx.rst}</div>}
+            <input style={inp} type="email" placeholder={lx.em} value={email} onChange={e=>setEmail(e.target.value)} required/>
+            {modo!=="reset"&&<input style={inp} type="password" placeholder={lx.pw} value={password} onChange={e=>setPass(e.target.value)} required minLength={6}/>}
+            <button type="submit" style={btn} disabled={cargando}>{cargando?lx.proc:modo==="login"?lx.b1:modo==="registro"?lx.b2:lx.b3}</button>
           </div>
         </form>
-        {mensaje && (
-          <div style={{ marginTop:16, padding:"10px 14px", borderRadius:8, fontSize:14, background:mensaje.tipo==="ok"?"#14532d33":"#7f1d1d33", color:mensaje.tipo==="ok"?t.success:t.danger, border:`1px solid ${mensaje.tipo==="ok"?t.success:t.danger}` }}>{mensaje.texto}</div>
-        )}
+        {mensaje&&<div style={{ marginTop:16, padding:"10px 14px", borderRadius:8, fontSize:14, background:mensaje.tipo==="ok"?"#14532d33":"#7f1d1d33", color:mensaje.tipo==="ok"?t.success:t.danger, border:`1px solid ${mensaje.tipo==="ok"?t.success:t.danger}` }}>{mensaje.texto}</div>}
         <div style={{ marginTop:20, textAlign:"center", fontSize:13, color:t.textSub }}>
-          {modo==="login" && <span onClick={()=>{setModo("reset");setMsg(null);}} style={{ cursor:"pointer", color:t.accent }}>¿Olvidaste tu contraseña?</span>}
-          {modo==="reset" && <span onClick={()=>{setModo("login");setMsg(null);}} style={{ cursor:"pointer", color:t.accent }}>← Volver al login</span>}
+          {modo==="login"&&<span onClick={()=>{setModo("reset");setMsg(null);}} style={{ cursor:"pointer", color:t.accent }}>{lx.fgt}</span>}
+          {modo==="reset"&&<span onClick={()=>{setModo("login");setMsg(null);}} style={{ cursor:"pointer", color:t.accent }}>{lx.back}</span>}
         </div>
       </div>
     </div>
   );
 }
+
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // APP PRINCIPAL
@@ -255,6 +462,9 @@ export default function CotizadorProEstandar() {
   const [pestana, setPestana]             = useState("cotizar");
   const [notif, setNotif]                 = useState<{msg:string;tipo:"ok"|"error"|"warn"}|null>(null);
   const [cotEnEdicion, setCotEnEdicion]   = useState<any>(null);
+  const [idiomaActivo, setIdiomaActivo]   = useState<string>(() => {
+    try { return localStorage.getItem("cot_lang") || "es"; } catch { return "es"; }
+  });
 
   function mostrarNotif(msg: string, tipo:"ok"|"error"|"warn"="ok") {
     setNotif({msg,tipo});
@@ -285,7 +495,14 @@ export default function CotizadorProEstandar() {
         .limit(1)
         .single();
       if (data && !error) {
-        setDatos({ ...DATOS_INICIALES, ...data.datos });
+        const lang = localStorage.getItem("cot_lang") || "es";
+        setIdiomaActivo(lang);
+        setDatos({ ...DATOS_INICIALES, ...data.datos,
+          config: { ...DATOS_INICIALES.config, ...(data.datos?.config||{}), idioma: lang }
+        });
+      } else {
+        const lang = localStorage.getItem("cot_lang") || "es";
+        setIdiomaActivo(lang);
       }
     })();
   }, [sesion]);
@@ -320,7 +537,7 @@ export default function CotizadorProEstandar() {
 
   const t        = TEMAS[datos.tema] || TEMAS.oscuro;
   const tamFuente = datos.tamTexto === "chico" ? 13 : datos.tamTexto === "grande" ? 16 : 14;
-  const tx        = T18N[datos.config?.idioma || "es"] || T18N.es;
+  const tx        = T18N[idiomaActivo] || T18N.es;
 
   // ── Edición completa desde Mis Cotizaciones ──────────────────────────────────
   function handleEditarCompleto(cot: any, modo: "mismo"|"nuevo") {
@@ -1530,7 +1747,12 @@ function PestanaConfig({ datos, actualizarDatos, t, tamFuente, tx }: any) {
           </div>
           <div>
             <label style={label}>Idioma PDF por defecto</label>
-            <select style={inp} value={datos.config.idioma||"es"} onChange={e=>actualizarDatos({ config:{...datos.config,idioma:e.target.value} })}>
+            <select style={inp} value={datos.config.idioma||"es"} onChange={e=>{
+              const l = e.target.value;
+              setIdiomaActivo(l);
+              try { localStorage.setItem("cot_lang", l); } catch {}
+              actualizarDatos({ config:{...datos.config,idioma:l} });
+            }}>
               <option value="es">🇲🇽 Español</option>
               <option value="en">🇺🇸 English</option>
             </select>
