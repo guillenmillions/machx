@@ -39,7 +39,7 @@ var TEMAS: Record<string, Record<string, string>> = {
 
 function T18N(lang: string): Record<string, string> {
   const data: Record<string, Record<string, string>> = {
-  es: {
+    es: {
     cotizacion:"COTIZACIÓN", cliente:"Cliente", condiciones:"Condiciones",
     entrega:"Entrega", pago:"Pago", vigencia:"Vigencia",
     descripcion:"Descripción de Servicios", cant:"Cant.", unidad:"Unidad",
@@ -64,8 +64,8 @@ function T18N(lang: string): Record<string, string> {
     loginErrorPass:"Correo o contraseña incorrectos.",
     loginCuentaCreada:"¡Cuenta creada! Revisa tu correo para confirmar.",
     loginEnlaceEnv:"Te enviamos un enlace para restablecer tu contraseña.",
-  },
-  en: {
+    },
+    en: {
     cotizacion:"QUOTATION", cliente:"Bill To", condiciones:"Terms",
     entrega:"Delivery", pago:"Payment", vigencia:"Valid for",
     descripcion:"Services Description", cant:"Qty.", unidad:"Unit",
@@ -90,8 +90,8 @@ function T18N(lang: string): Record<string, string> {
     loginErrorPass:"Incorrect email or password.",
     loginCuentaCreada:"Account created! Check your email to confirm.",
     loginEnlaceEnv:"We sent you a link to reset your password.",
-  },
-};
+    },
+  };
   return data[lang] || data["es"];
 }
 
