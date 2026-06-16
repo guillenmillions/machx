@@ -37,35 +37,23 @@ var TEMAS: Record<string, Record<string, string>> = {
   },
 };
 
-function T18N(lang: string): Record<string, string> {
-  const data: Record<string, Record<string, string>> = {
-    es: {
-    cotizacion:"COTIZACIÓN", cliente:"Cliente", condiciones:"Condiciones",
+const _T18N_DATA = {
+  es: {
+    cotizacion:"COTIZACION", cliente:"Cliente", condiciones:"Condiciones",
     entrega:"Entrega", pago:"Pago", vigencia:"Vigencia",
-    descripcion:"Descripción de Servicios", cant:"Cant.", unidad:"Unidad",
+    descripcion:"Descripcion de Servicios", cant:"Cant.", unidad:"Unidad",
     pUnitario:"P. Unitario", total:"Total", subtotal:"Subtotal",
-    notas:"Notas", elaboro:"Elaboró", autorizo:"Autorizó / Cliente",
-    dias:"días", porConfirmar:"Por confirmar", attn:"Attn:", plano:"Plano:",
-    guardar:"Guardar Cotización", nuevaCot:"Nueva Cotización",
+    notas:"Notas", elaboro:"Elaboro", autorizo:"Autorizo / Cliente",
+    dias:"dias", porConfirmar:"Por confirmar", attn:"Attn:", plano:"Plano:",
+    guardar:"Guardar Cotizacion", nuevaCot:"Nueva Cotizacion",
     misCots:"Mis Cotizaciones", materiales:"Materiales",
-    procesos:"Procesos", configuracion:"Configuración",
-    pagoPorDefecto:"Anticipo 50% / Liquidación a entrega",
+    procesos:"Procesos", configuracion:"Configuracion",
+    pagoPorDefecto:"Anticipo 50% / Liquidacion a entrega",
     borrador:"Borrador", enviada:"Enviada", aprobada:"Aprobada",
     rechazada:"Rechazada", enProceso:"En Proceso", entregada:"Entregada",
     pza:"pza", pzas:"pzas", kg:"kg", hr:"hr", m:"m", ft:"ft", pulg:"pulg", lote:"lote",
-    // Login
-    loginSubtitulo:"Estándar — Sistema de Cotización Industrial",
-    loginSinCuenta:"¿No tienes cuenta?", loginComprar:"Adquiere tu licencia aquí →",
-    loginIniciar:"Iniciar sesión", loginRegistrar:"Registrarse",
-    loginCorreo:"Correo electrónico", loginPass:"Contraseña (mínimo 6 caracteres)",
-    loginEntrar:"Entrar", loginCrear:"Crear cuenta", loginEnviar:"Enviar enlace",
-    loginProcesando:"Procesando...", loginOlvide:"¿Olvidaste tu contraseña?",
-    loginVolver:"← Volver", loginReset:"Ingresa tu correo para recibir el enlace de recuperación.",
-    loginErrorPass:"Correo o contraseña incorrectos.",
-    loginCuentaCreada:"¡Cuenta creada! Revisa tu correo para confirmar.",
-    loginEnlaceEnv:"Te enviamos un enlace para restablecer tu contraseña.",
-    },
-    en: {
+  },
+  en: {
     cotizacion:"QUOTATION", cliente:"Bill To", condiciones:"Terms",
     entrega:"Delivery", pago:"Payment", vigencia:"Valid for",
     descripcion:"Services Description", cant:"Qty.", unidad:"Unit",
@@ -79,22 +67,11 @@ function T18N(lang: string): Record<string, string> {
     borrador:"Draft", enviada:"Sent", aprobada:"Approved",
     rechazada:"Rejected", enProceso:"In Progress", entregada:"Delivered",
     pza:"pc", pzas:"pcs", kg:"kg", hr:"hr", m:"m", ft:"ft", pulg:"in", lote:"lot",
-    // Login
-    loginSubtitulo:"Standard — Industrial Quoting System",
-    loginSinCuenta:"Don't have an account?", loginComprar:"Get your license here →",
-    loginIniciar:"Sign in", loginRegistrar:"Sign up",
-    loginCorreo:"Email address", loginPass:"Password (minimum 6 characters)",
-    loginEntrar:"Sign in", loginCrear:"Create account", loginEnviar:"Send link",
-    loginProcesando:"Processing...", loginOlvide:"Forgot your password?",
-    loginVolver:"← Back", loginReset:"Enter your email to receive a password reset link.",
-    loginErrorPass:"Incorrect email or password.",
-    loginCuentaCreada:"Account created! Check your email to confirm.",
-    loginEnlaceEnv:"We sent you a link to reset your password.",
-    },
-  };
-  return data[lang] || data["es"];
+  },
+};
+function T18N(lang: string): Record<string, string> {
+  return _T18N_DATA[lang as keyof typeof _T18N_DATA] || _T18N_DATA.es;
 }
-
 // ─── SUPABASE ─────────────────────────────────────────────────────────────────
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
