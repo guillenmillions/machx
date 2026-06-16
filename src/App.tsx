@@ -202,170 +202,96 @@ const DATOS_INICIALES = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// PANTALLA DE LOGIN — completamente autónomo, sin dependencias de constantes
+// PANTALLA DE LOGIN
 // ═══════════════════════════════════════════════════════════════════════════════
-function PantallaLogin({ onIdiomaElegido }: { onIdiomaElegido?: (id: string) => void }) {
-  const [modo, setModo]     = useState<"login"|"registro"|"reset">("login");
+function PantallaLogin() {
+  const [modo, setModo]     = useState("login");
   const [email, setEmail]   = useState("");
-  const [password, setPass] = useState("");
-  const [cargando, setCarg] = useState(false);
-  const [mensaje, setMsg]   = useState<{tipo:string;texto:string}|null>(null);
-  const [lang, setLang]     = useState<"es"|"en">("es");
+  const [pass, setPass]     = useState("");
+  const [busy, setBusy]     = useState(false);
+  const [msg, setMsg]       = useState(null as {ok:boolean;txt:string}|null);
 
-  const col = {
-    bg:"#0f1117", card:"#1a1d27", border:"#2a2d3e", text:"#e8eaf0",
-    sub:"#8b8fa8", accent:"#4f6ef7", success:"#22c55e", danger:"#ef4444",
-    inp:"#12151f",
-  };
+  const bg="#0f1117",card="#1a1d27",bdr="#2a2d3e",txt="#e8eaf0";
+  const sub="#8b8fa8",acc="#4f6ef7",ok="#22c55e",err="#ef4444",inp="#12151f";
 
-  const TX: Record<string, Record<string, string>> = {
-    es: {
-      sub:"Estándar — Sistema de Cotización Industrial",
-      noAcc:"¿No tienes cuenta?", link:"Adquiere tu licencia aquí →",
-      tab1:"Iniciar sesión", tab2:"Registrarse",
-      em:"Correo electrónico", pw:"Contraseña (mínimo 6 caracteres)",
-      b1:"Entrar", b2:"Crear cuenta", b3:"Enviar enlace", proc:"Procesando...",
-      fgt:"¿Olvidaste tu contraseña?", back:"← Volver",
-      rst:"Ingresa tu correo para recibir el enlace de recuperación.",
-      ePass:"Correo o contraseña incorrectos.",
-      okReg:"¡Cuenta creada! Revisa tu correo para confirmar.",
-      okRst:"Te enviamos un enlace para restablecer tu contraseña.",
-    },
-    en: {
-      sub:"Standard — Industrial Quoting System",
-      noAcc:"Don\'t have an account?", link:"Get your license here →",
-      tab1:"Sign in", tab2:"Sign up",
-      em:"Email address", pw:"Password (minimum 6 characters)",
-      b1:"Sign in", b2:"Create account", b3:"Send link", proc:"Processing...",
-      fgt:"Forgot your password?", back:"← Back",
-      rst:"Enter your email to receive a password reset link.",
-      ePass:"Incorrect email or password.",
-      okReg:"Account created! Check your email to confirm.",
-      okRst:"We sent you a link to reset your password.",
-    },
-  };
-  const lx = TX[lang] || TX["es"];
-
-  async function handleLogin(e: any) {
-    e.preventDefault(); setCarg(true); setMsg(null);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) { setMsg({ tipo:"error", texto:lx.ePass }); setCarg(false); return; }
-    onIdiomaElegido?.(lang);
-    setCarg(false);
+  async function doLogin(e:any){
+    e.preventDefault();setBusy(true);setMsg(null);
+    const {error}=await supabase.auth.signInWithPassword({email,password:pass});
+    if(error)setMsg({ok:false,txt:"Correo o contraseña incorrectos."});
+    setBusy(false);
   }
-  async function handleRegistro(e: any) {
-    e.preventDefault(); setCarg(true); setMsg(null);
-    const { error } = await supabase.auth.signUp({ email, password });
-    if (error) setMsg({ tipo:"error", texto:error.message });
-    else { setMsg({ tipo:"ok", texto:lx.okReg }); onIdiomaElegido?.(lang); }
-    setCarg(false);
+  async function doReg(e:any){
+    e.preventDefault();setBusy(true);setMsg(null);
+    const {error}=await supabase.auth.signUp({email,password:pass});
+    if(error)setMsg({ok:false,txt:error.message});
+    else setMsg({ok:true,txt:"¡Cuenta creada! Revisa tu correo."});
+    setBusy(false);
   }
-  async function handleReset(e: any) {
-    e.preventDefault(); setCarg(true); setMsg(null);
-    const { error } = await supabase.auth.resetPasswordForEmail(email);
-    if (error) setMsg({ tipo:"error", texto:error.message });
-    else setMsg({ tipo:"ok", texto:lx.okRst });
-    setCarg(false);
+  async function doReset(e:any){
+    e.preventDefault();setBusy(true);setMsg(null);
+    const {error}=await supabase.auth.resetPasswordForEmail(email);
+    if(error)setMsg({ok:false,txt:error.message});
+    else setMsg({ok:true,txt:"Enlace enviado a tu correo."});
+    setBusy(false);
   }
 
-  const S = {
-    inp: { width:"100%", padding:"12px 14px", borderRadius:8,
-      border:`1px solid ${col.border}`, background:col.inp, color:col.text,
-      fontSize:15, outline:"none", boxSizing:"border-box" as const },
-    btn: { width:"100%", padding:"13px", borderRadius:8, border:"none",
-      background:col.accent, color:"#fff", fontSize:16, fontWeight:700,
-      cursor:cargando?"not-allowed":"pointer", opacity:cargando?0.7:1 },
-  };
+  const sInp={width:"100%",padding:"12px 14px",borderRadius:8,border:`1px solid ${bdr}`,
+    background:inp,color:txt,fontSize:15,outline:"none",boxSizing:"border-box" as const};
+  const sBtn={width:"100%",padding:"13px",borderRadius:8,border:"none",
+    background:acc,color:"#fff",fontSize:16,fontWeight:700,
+    cursor:busy?"not-allowed":"pointer",opacity:busy?0.7:1};
 
   return (
-    <div style={{ minHeight:"100vh",
-      background:"linear-gradient(135deg,#0f1117 0%,#1a1d27 50%,#0f1117 100%)",
-      display:"flex", alignItems:"center", justifyContent:"center",
-      fontFamily:"sans-serif" }}>
-      <div style={{ width:420, background:col.card, borderRadius:16,
-        border:`1px solid ${col.border}`, padding:40 }}>
-
-        <div style={{ display:"flex", justifyContent:"flex-end", marginBottom:16, gap:6 }}>
-          {(["es","en"] as const).map(l=>(
-            <button key={l} onClick={()=>{setLang(l);setMsg(null);}} style={{
-              padding:"4px 12px", borderRadius:20,
-              border:`1px solid ${lang===l?col.accent:col.border}`,
-              background:lang===l?col.accent:"transparent",
-              color:lang===l?"#fff":col.sub,
-              cursor:"pointer", fontSize:12, fontWeight:600 }}>
-              {l==="es"?"🇲🇽 ES":"🇺🇸 EN"}
-            </button>
-          ))}
-        </div>
-
-        <div style={{ textAlign:"center", marginBottom:32 }}>
-          <div style={{ display:"inline-flex", alignItems:"center",
-            justifyContent:"center", width:56, height:56, borderRadius:14,
-            background:col.accent, marginBottom:16, fontSize:26 }}>⚙️</div>
-          <div style={{ fontSize:24, fontWeight:800, color:col.text }}>CotizadorPRO</div>
-          <div style={{ fontSize:13, color:col.sub, marginTop:4 }}>{lx.sub}</div>
-          <div style={{ fontSize:11, color:"#475569", marginTop:10, lineHeight:1.6 }}>
-            {lx.noAcc}{" "}
+    <div style={{minHeight:"100vh",background:"linear-gradient(135deg,#0f1117,#1a1d27,#0f1117)",
+      display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"sans-serif"}}>
+      <div style={{width:420,background:card,borderRadius:16,border:`1px solid ${bdr}`,padding:40}}>
+        <div style={{textAlign:"center",marginBottom:32}}>
+          <div style={{display:"inline-flex",alignItems:"center",justifyContent:"center",
+            width:56,height:56,borderRadius:14,background:acc,marginBottom:16,fontSize:26}}>⚙️</div>
+          <div style={{fontSize:24,fontWeight:800,color:txt}}>CotizadorPRO</div>
+          <div style={{fontSize:13,color:sub,marginTop:4}}>Sistema de Cotización Industrial</div>
+          <div style={{fontSize:11,color:"#475569",marginTop:10}}>
+            {"¿No tienes cuenta? "}
             <a href="https://hotmart.com/es/marketplace/productos/cotizadorpro-estandar-sistema-de-cotizacion-para-talleres-de-maquinado/G106237955N"
               target="_blank" rel="noopener noreferrer"
-              style={{ color:"#60a5fa", textDecoration:"none", fontWeight:600 }}>
-              {lx.link}
+              style={{color:"#60a5fa",textDecoration:"none",fontWeight:600}}>
+              Adquiere tu licencia →
             </a>
           </div>
         </div>
-
-        {modo!=="reset" && (
-          <div style={{ display:"flex", marginBottom:28,
-            background:col.inp, borderRadius:8, padding:4 }}>
-            {(["login","registro"] as const).map(m=>(
+        {modo!=="reset"&&(
+          <div style={{display:"flex",marginBottom:28,background:inp,borderRadius:8,padding:4}}>
+            {["login","registro"].map(m=>(
               <button key={m} onClick={()=>{setModo(m);setMsg(null);}} style={{
-                flex:1, padding:"9px 0", border:"none", borderRadius:6,
-                cursor:"pointer", background:modo===m?col.accent:"transparent",
-                color:modo===m?"#fff":col.sub, fontWeight:600, fontSize:14 }}>
-                {m==="login"?lx.tab1:lx.tab2}
+                flex:1,padding:"9px 0",border:"none",borderRadius:6,cursor:"pointer",
+                background:modo===m?acc:"transparent",color:modo===m?"#fff":sub,
+                fontWeight:600,fontSize:14}}>
+                {m==="login"?"Iniciar sesión":"Registrarse"}
               </button>
             ))}
           </div>
         )}
-
-        <form onSubmit={modo==="login"?handleLogin:modo==="registro"?handleRegistro:handleReset}>
-          <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
-            {modo==="reset" && (
-              <div style={{ color:col.sub, fontSize:14, lineHeight:1.5 }}>{lx.rst}</div>
-            )}
-            <input style={S.inp} type="email" placeholder={lx.em}
-              value={email} onChange={e=>setEmail(e.target.value)} required />
-            {modo!=="reset" && (
-              <input style={S.inp} type="password" placeholder={lx.pw}
-                value={password} onChange={e=>setPass(e.target.value)}
-                required minLength={6} />
-            )}
-            <button type="submit" style={S.btn} disabled={cargando}>
-              {cargando?lx.proc:modo==="login"?lx.b1:modo==="registro"?lx.b2:lx.b3}
+        <form onSubmit={modo==="login"?doLogin:modo==="registro"?doReg:doReset}>
+          <div style={{display:"flex",flexDirection:"column",gap:14}}>
+            {modo==="reset"&&<div style={{color:sub,fontSize:14}}>Ingresa tu correo para restablecer tu contraseña.</div>}
+            <input style={sInp} type="email" placeholder="Correo electrónico"
+              value={email} onChange={e=>setEmail(e.target.value)} required/>
+            {modo!=="reset"&&<input style={sInp} type="password" placeholder="Contraseña (mínimo 6 caracteres)"
+              value={pass} onChange={e=>setPass(e.target.value)} required minLength={6}/>}
+            <button type="submit" style={sBtn} disabled={busy}>
+              {busy?"Procesando...":modo==="login"?"Entrar":modo==="registro"?"Crear cuenta":"Enviar enlace"}
             </button>
           </div>
         </form>
-
-        {mensaje && (
-          <div style={{ marginTop:16, padding:"10px 14px", borderRadius:8, fontSize:14,
-            background:mensaje.tipo==="ok"?"#14532d33":"#7f1d1d33",
-            color:mensaje.tipo==="ok"?col.success:col.danger,
-            border:`1px solid ${mensaje.tipo==="ok"?col.success:col.danger}` }}>
-            {mensaje.texto}
-          </div>
-        )}
-
-        <div style={{ marginTop:20, textAlign:"center", fontSize:13, color:col.sub }}>
-          {modo==="login" && (
-            <span onClick={()=>{setModo("reset");setMsg(null);}}
-              style={{ cursor:"pointer", color:col.accent }}>{lx.fgt}</span>
-          )}
-          {modo==="reset" && (
-            <span onClick={()=>{setModo("login");setMsg(null);}}
-              style={{ cursor:"pointer", color:col.accent }}>{lx.back}</span>
-          )}
+        {msg&&<div style={{marginTop:16,padding:"10px 14px",borderRadius:8,fontSize:14,
+          background:msg.ok?"#14532d33":"#7f1d1d33",color:msg.ok?ok:err,
+          border:`1px solid ${msg.ok?ok:err}`}}>{msg.txt}</div>}
+        <div style={{marginTop:20,textAlign:"center",fontSize:13,color:sub}}>
+          {modo==="login"&&<span onClick={()=>{setModo("reset");setMsg(null);}}
+            style={{cursor:"pointer",color:acc}}>¿Olvidaste tu contraseña?</span>}
+          {modo==="reset"&&<span onClick={()=>{setModo("login");setMsg(null);}}
+            style={{cursor:"pointer",color:acc}}>← Volver</span>}
         </div>
-
       </div>
     </div>
   );
@@ -447,9 +373,7 @@ export default function CotizadorProEstandar() {
     </div>
   );
 
-  if (!sesion) return <PantallaLogin onIdiomaElegido={(id: string) => {
-    setDatos((prev: any) => ({ ...prev, config: { ...prev.config, idioma: id } }));
-  }} />;
+  if (!sesion) return <PantallaLogin />;
 
   const t        = (TEMAS && TEMAS[datos.tema]) ? TEMAS[datos.tema] : (TEMAS ? TEMAS.claro : TEMAS["claro"]);
   const tamFuente = datos.tamTexto === "chico" ? 13 : datos.tamTexto === "grande" ? 16 : 14;
