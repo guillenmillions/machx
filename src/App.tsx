@@ -1,23 +1,39 @@
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@supabase/supabase-js";
 
-// ─── SUPABASE ─────────────────────────────────────────────────────────────────
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
-const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-
-// ─── MONEDAS ──────────────────────────────────────────────────────────────────
-const MONEDAS: Record<string, { id: string; label: string; simbolo: string; locale: string; flag: string }> = {
-  MXN: { id:"MXN", label:"Peso Mexicano",     simbolo:"$",  locale:"es-MX", flag:"🇲🇽" },
-  USD: { id:"USD", label:"Dólar Americano",   simbolo:"$",  locale:"en-US", flag:"🇺🇸" },
-  EUR: { id:"EUR", label:"Euro",              simbolo:"€",  locale:"de-DE", flag:"🇪🇺" },
-  CAD: { id:"CAD", label:"Dólar Canadiense",  simbolo:"$",  locale:"en-CA", flag:"🇨🇦" },
-  COP: { id:"COP", label:"Peso Colombiano",   simbolo:"$",  locale:"es-CO", flag:"🇨🇴" },
-  ARS: { id:"ARS", label:"Peso Argentino",    simbolo:"$",  locale:"es-AR", flag:"🇦🇷" },
-  BRL: { id:"BRL", label:"Real Brasileño",    simbolo:"R$", locale:"pt-BR", flag:"🇧🇷" },
-  CLP: { id:"CLP", label:"Peso Chileno",      simbolo:"$",  locale:"es-CL", flag:"🇨🇱" },
-  PEN: { id:"PEN", label:"Sol Peruano",       simbolo:"S/", locale:"es-PE", flag:"🇵🇪" },
-  GBP: { id:"GBP", label:"Libra Esterlina",   simbolo:"£",  locale:"en-GB", flag:"🇬🇧" },
+const TEMAS: Record<string, Record<string, string>> = {
+  claro: {
+    // Claro Profesional — diseño corporativo, optimizado para impresión
+    bg:"#f0f2f5",        // fondo general gris muy suave
+    card:"#ffffff",       // tarjetas blancas puras
+    border:"#dde1e9",    // bordes sutiles gris azulado
+    text:"#1a1f2e",      // texto principal casi negro, máximo contraste
+    textSub:"#5a6278",   // texto secundario gris medio legible
+    accent:"#1a56db",    // azul corporativo sólido (no saturado)
+    accentHover:"#1344b8",
+    success:"#0e7a3f",   // verde oscuro legible
+    danger:"#c41e1e",    // rojo legible
+    input:"#f7f8fa",     // inputs gris muy claro
+    header:"#ffffff",    // header blanco con sombra
+    acento:"#0e7a3f",
+    btnOrange:"#d4500a", // naranja oscuro (imprime bien)
+  },
+  oscuro: {
+    // Oscuro Industrial — para trabajo nocturno o talleres con poca luz
+    bg:"#0f1117", card:"#1a1d27", border:"#2a2d3e",
+    text:"#e8eaf0", textSub:"#8b8fa8", accent:"#4f6ef7",
+    accentHover:"#3d5ce0", success:"#22c55e", danger:"#ef4444",
+    input:"#12151f", header:"#13161f",
+    acento:"#1B9E75", btnOrange:"#f97316",
+  },
+  marino: {
+    // Azul Marino — intermedio, buena legibilidad en monitores
+    bg:"#0a1628", card:"#0f2040", border:"#1a3a6b",
+    text:"#cdd8f0", textSub:"#7a96c4", accent:"#38bdf8",
+    accentHover:"#0ea5e9", success:"#34d399", danger:"#f87171",
+    input:"#0d1c36", header:"#0d1c36",
+    acento:"#38bdf8", btnOrange:"#38bdf8",
+  },
 };
 
 // ─── TEXTOS BILINGÜE ──────────────────────────────────────────────────────────
@@ -264,6 +280,28 @@ const T18N: Record<string, Record<string, string>> = {
   },
 };
 
+
+// ─── SUPABASE ─────────────────────────────────────────────────────────────────
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ─── MONEDAS ──────────────────────────────────────────────────────────────────
+const MONEDAS: Record<string, { id: string; label: string; simbolo: string; locale: string; flag: string }> = {
+  MXN: { id:"MXN", label:"Peso Mexicano",     simbolo:"$",  locale:"es-MX", flag:"🇲🇽" },
+  USD: { id:"USD", label:"Dólar Americano",   simbolo:"$",  locale:"en-US", flag:"🇺🇸" },
+  EUR: { id:"EUR", label:"Euro",              simbolo:"€",  locale:"de-DE", flag:"🇪🇺" },
+  CAD: { id:"CAD", label:"Dólar Canadiense",  simbolo:"$",  locale:"en-CA", flag:"🇨🇦" },
+  COP: { id:"COP", label:"Peso Colombiano",   simbolo:"$",  locale:"es-CO", flag:"🇨🇴" },
+  ARS: { id:"ARS", label:"Peso Argentino",    simbolo:"$",  locale:"es-AR", flag:"🇦🇷" },
+  BRL: { id:"BRL", label:"Real Brasileño",    simbolo:"R$", locale:"pt-BR", flag:"🇧🇷" },
+  CLP: { id:"CLP", label:"Peso Chileno",      simbolo:"$",  locale:"es-CL", flag:"🇨🇱" },
+  PEN: { id:"PEN", label:"Sol Peruano",       simbolo:"S/", locale:"es-PE", flag:"🇵🇪" },
+  GBP: { id:"GBP", label:"Libra Esterlina",   simbolo:"£",  locale:"en-GB", flag:"🇬🇧" },
+};
+
+
+
 // ─── FÓRMULA DE CÁLCULO (no modificar) ───────────────────────────────────────
 function calcular(labor: number, material: number, extras: number, pctGD: number, pctSGV: number, pctMargen: number) {
   const costoDirecto   = labor + material + extras;
@@ -320,40 +358,7 @@ async function fetchTipoCambio(): Promise<number> {
 }
 
 
-const TEMAS: Record<string, Record<string, string>> = {
-  claro: {
-    // Claro Profesional — diseño corporativo, optimizado para impresión
-    bg:"#f0f2f5",        // fondo general gris muy suave
-    card:"#ffffff",       // tarjetas blancas puras
-    border:"#dde1e9",    // bordes sutiles gris azulado
-    text:"#1a1f2e",      // texto principal casi negro, máximo contraste
-    textSub:"#5a6278",   // texto secundario gris medio legible
-    accent:"#1a56db",    // azul corporativo sólido (no saturado)
-    accentHover:"#1344b8",
-    success:"#0e7a3f",   // verde oscuro legible
-    danger:"#c41e1e",    // rojo legible
-    input:"#f7f8fa",     // inputs gris muy claro
-    header:"#ffffff",    // header blanco con sombra
-    acento:"#0e7a3f",
-    btnOrange:"#d4500a", // naranja oscuro (imprime bien)
-  },
-  oscuro: {
-    // Oscuro Industrial — para trabajo nocturno o talleres con poca luz
-    bg:"#0f1117", card:"#1a1d27", border:"#2a2d3e",
-    text:"#e8eaf0", textSub:"#8b8fa8", accent:"#4f6ef7",
-    accentHover:"#3d5ce0", success:"#22c55e", danger:"#ef4444",
-    input:"#12151f", header:"#13161f",
-    acento:"#1B9E75", btnOrange:"#f97316",
-  },
-  marino: {
-    // Azul Marino — intermedio, buena legibilidad en monitores
-    bg:"#0a1628", card:"#0f2040", border:"#1a3a6b",
-    text:"#cdd8f0", textSub:"#7a96c4", accent:"#38bdf8",
-    accentHover:"#0ea5e9", success:"#34d399", danger:"#f87171",
-    input:"#0d1c36", header:"#0d1c36",
-    acento:"#38bdf8", btnOrange:"#38bdf8",
-  },
-};
+
 
 // ─── DATOS INICIALES ──────────────────────────────────────────────────────────
 const DATOS_INICIALES = {
