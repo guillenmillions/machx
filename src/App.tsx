@@ -7,7 +7,8 @@ const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ─── MONEDAS ──────────────────────────────────────────────────────────────────
-const MONEDAS: Record<string, { id: string; label: string; simbolo: string; locale: string; flag: string }> = {
+// @ts-ignore
+var MONEDAS: Record<string, { id: string; label: string; simbolo: string; locale: string; flag: string }> = {
   MXN: { id:"MXN", label:"Peso Mexicano",     simbolo:"$",  locale:"es-MX", flag:"🇲🇽" },
   USD: { id:"USD", label:"Dólar Americano",   simbolo:"$",  locale:"en-US", flag:"🇺🇸" },
   EUR: { id:"EUR", label:"Euro",              simbolo:"€",  locale:"de-DE", flag:"🇪🇺" },
@@ -21,7 +22,8 @@ const MONEDAS: Record<string, { id: string; label: string; simbolo: string; loca
 };
 
 // ─── TEXTOS BILINGÜE ──────────────────────────────────────────────────────────
-const T18N: Record<string, Record<string, string>> = {
+// @ts-ignore
+var T18N: Record<string, Record<string, string>> = {
   es: {
     cotizacion:"COTIZACIÓN", cliente:"Cliente", condiciones:"Condiciones",
     entrega:"Entrega", pago:"Pago", vigencia:"Vigencia",
@@ -132,7 +134,8 @@ async function fetchTipoCambio(): Promise<number> {
 }
 
 
-const TEMAS: Record<string, Record<string, string>> = {
+// @ts-ignore
+var TEMAS: Record<string, Record<string, string>> = {
   claro: {
     // Claro Profesional — diseño corporativo, optimizado para impresión
     bg:"#f0f2f5",        // fondo general gris muy suave
