@@ -205,12 +205,12 @@ function PantallaLogin() {
   const [mensaje, setMsg]   = useState<{tipo:string;texto:string}|null>(null);
 
   // Idioma guardado en localStorage — no depende de ninguna constante global
-  const [lang, setLang] = useState<"es"|"en">(() => {
-    try { return (localStorage.getItem("cot_lang") as "es"|"en") || "es"; }
+  const [lang, setLang] = useState<"es"|"en"|"pt">(() => {
+    try { return (localStorage.getItem("cot_lang") as "es"|"en"|"pt") || "es"; }
     catch { return "es"; }
   });
 
-  function cambiarLang(l: "es"|"en") {
+  function cambiarLang(l: "es"|"en"|"pt") {
     setLang(l);
     try { localStorage.setItem("cot_lang", l); } catch {}
     setMsg(null);
@@ -241,7 +241,19 @@ function PantallaLogin() {
     okReg:"Account created! Check your email to confirm.",
     okReset:"We sent you a link to reset your password.",
   };
-  const lx = lang === "en" ? en_txt : es_txt;
+  const pt_txt = {
+    sub:"Padrão — Sistema de Cotação Industrial",
+    sinCuenta:"Não tem uma conta?", comprar:"Adquira sua licença aqui →",
+    tab1:"Entrar", tab2:"Cadastrar",
+    correo:"E-mail", pass:"Senha (mínimo 6 caracteres)",
+    btn1:"Entrar", btn2:"Criar conta", btn3:"Enviar link",
+    proc:"Processando...", olvide:"Esqueceu sua senha?", volver:"← Voltar",
+    resetMsg:"Digite seu e-mail para receber o link de recuperação.",
+    errLogin:"E-mail ou senha incorretos.",
+    okReg:"Conta criada! Verifique seu e-mail para confirmar.",
+    okReset:"Enviamos um link para redefinir sua senha.",
+  };
+  const lx = lang === "en" ? en_txt : lang === "pt" ? pt_txt : es_txt;
 
   const t = TEMAS.oscuro;
 
@@ -275,7 +287,7 @@ function PantallaLogin() {
 
         {/* Selector de idioma */}
         <div style={{ display:"flex", justifyContent:"flex-end", marginBottom:16, gap:6 }}>
-          {(["es","en"] as const).map(l => (
+          {(["es","en","pt"] as const).map(l => (
             <button key={l} onClick={() => cambiarLang(l)} style={{
               padding:"4px 12px", borderRadius:20,
               border:`1px solid ${lang===l ? t.accent : t.border}`,
@@ -283,7 +295,7 @@ function PantallaLogin() {
               color: lang===l ? "#fff" : t.textSub,
               cursor:"pointer", fontSize:12, fontWeight:600,
             }}>
-              {l === "es" ? "🇲🇽 ES" : "🇺🇸 EN"}
+              {l === "es" ? "🇲🇽 ES" : l === "en" ? "🇺🇸 EN" : "🇧🇷 PT"}
             </button>
           ))}
         </div>
@@ -622,7 +634,10 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, tx, cotEnEdicion
     const nueva = {
       id: (modoEdicion === "mismo" && cot) ? cot.id : Date.now(),
       folio, descripcion,
-      fecha: new Date().toLocaleDateString(idioma==="en"?"en-US":"es-MX", {year:"numeric",month:"short",day:"numeric"}),
+      fecha: new Date().toLocaleDateString(
+        idioma==="en" ? "en-US" : idioma==="pt" ? "pt-BR" : "es-MX",
+        {year:"numeric", month:"short", day:"numeric"}
+      ),
       cliente: { nombre:clienteNombre, empresa:clienteEmpresa, email:clienteEmail, tel:clienteTel, ciudad:clienteCiudad, rfc:clienteRFC, razonSocial:clienteRazon, direccionFiscal:clienteDirFiscal },
       lineas: lineasCalc, extras: Number(extras)||0, nota,
       cond: { entrega, pago, validez },
@@ -773,6 +788,7 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, tx, cotEnEdicion
             <select style={inp} value={idioma} onChange={e=>setIdioma(e.target.value)}>
               <option value="es">🇲🇽 Español</option>
               <option value="en">🇺🇸 English</option>
+              <option value="pt">🇧🇷 Português</option>
             </select>
           </div>
           {moneda !== "MXN" && (
@@ -1155,7 +1171,7 @@ function VistaPDF({ datos, lineasCalc, res, extras, folio, descripcion, nota, cl
       <div style={{ display:"flex", gap:10, alignItems:"center", marginBottom:20, flexWrap:"wrap" as const }} data-noprint>
         <button onClick={onCerrar} style={{ padding:"7px 14px", borderRadius:8, border:`1px solid ${t.border}`, background:"transparent", color:t.text, cursor:"pointer" }}>← Volver</button>
         <button onClick={()=>window.print()} style={{ padding:"7px 16px", borderRadius:8, border:"none", background:t.accent, color:"#fff", cursor:"pointer", fontWeight:700 }}>🖨 Imprimir / PDF</button>
-        <span style={{ fontSize:11, color:t.textSub }}>Plantilla: {plantilla} · {MONEDAS[moneda]?.flag} {moneda} · {idioma==="en"?"English":"Español"}</span>
+        <span style={{ fontSize:11, color:t.textSub }}>Plantilla: {plantilla} · {MONEDAS[moneda]?.flag} {moneda} · {idioma==="en"?"English":idioma==="pt"?"Português":"Español"}</span>
         {moneda !== "MXN" && <span style={{ fontSize:11, color:t.textSub }}>T.C.: 1 USD = ${tc} MXN</span>}
       </div>
 
@@ -1670,6 +1686,7 @@ function PestanaConfig({ datos, actualizarDatos, t, tamFuente, tx }: any) {
             }}>
               <option value="es">🇲🇽 Español</option>
               <option value="en">🇺🇸 English</option>
+              <option value="pt">🇧🇷 Português</option>
             </select>
             <div style={{ fontSize:10, color:t.textSub, marginTop:4 }}>
               Cambia la interfaz y el idioma por defecto del PDF
