@@ -33,11 +33,20 @@ const T18N: Record<string, Record<string, string>> = {
     misCots:"Mis Cotizaciones", materiales:"Materiales",
     procesos:"Procesos", configuracion:"Configuración",
     pagoPorDefecto:"Anticipo 50% / Liquidación a entrega",
-    // Estados
     borrador:"Borrador", enviada:"Enviada", aprobada:"Aprobada",
     rechazada:"Rechazada", enProceso:"En Proceso", entregada:"Entregada",
-    // Unidades
-    pza:"pza", pzas:"pzas", kg:"kg", hr:"hr", m:"m", ft:"ft", pulg:'pulg', lote:"lote",
+    pza:"pza", pzas:"pzas", kg:"kg", hr:"hr", m:"m", ft:"ft", pulg:"pulg", lote:"lote",
+    // Login
+    loginSubtitulo:"Estándar — Sistema de Cotización Industrial",
+    loginSinCuenta:"¿No tienes cuenta?", loginComprar:"Adquiere tu licencia aquí →",
+    loginIniciar:"Iniciar sesión", loginRegistrar:"Registrarse",
+    loginCorreo:"Correo electrónico", loginPass:"Contraseña (mínimo 6 caracteres)",
+    loginEntrar:"Entrar", loginCrear:"Crear cuenta", loginEnviar:"Enviar enlace",
+    loginProcesando:"Procesando...", loginOlvide:"¿Olvidaste tu contraseña?",
+    loginVolver:"← Volver", loginReset:"Ingresa tu correo para recibir el enlace de recuperación.",
+    loginErrorPass:"Correo o contraseña incorrectos.",
+    loginCuentaCreada:"¡Cuenta creada! Revisa tu correo para confirmar.",
+    loginEnlaceEnv:"Te enviamos un enlace para restablecer tu contraseña.",
   },
   en: {
     cotizacion:"QUOTATION", cliente:"Bill To", condiciones:"Terms",
@@ -50,11 +59,20 @@ const T18N: Record<string, Record<string, string>> = {
     misCots:"My Quotes", materiales:"Materials",
     procesos:"Processes", configuracion:"Settings",
     pagoPorDefecto:"50% advance / balance on delivery",
-    // Estados
     borrador:"Draft", enviada:"Sent", aprobada:"Approved",
     rechazada:"Rejected", enProceso:"In Progress", entregada:"Delivered",
-    // Unidades
     pza:"pc", pzas:"pcs", kg:"kg", hr:"hr", m:"m", ft:"ft", pulg:"in", lote:"lot",
+    // Login
+    loginSubtitulo:"Standard — Industrial Quoting System",
+    loginSinCuenta:"Don't have an account?", loginComprar:"Get your license here →",
+    loginIniciar:"Sign in", loginRegistrar:"Sign up",
+    loginCorreo:"Email address", loginPass:"Password (minimum 6 characters)",
+    loginEntrar:"Sign in", loginCrear:"Create account", loginEnviar:"Send link",
+    loginProcesando:"Processing...", loginOlvide:"Forgot your password?",
+    loginVolver:"← Back", loginReset:"Enter your email to receive a password reset link.",
+    loginErrorPass:"Incorrect email or password.",
+    loginCuentaCreada:"Account created! Check your email to confirm.",
+    loginEnlaceEnv:"We sent you a link to reset your password.",
   },
 };
 
@@ -179,67 +197,35 @@ const DATOS_INICIALES = {
 // ═══════════════════════════════════════════════════════════════════════════════
 // PANTALLA DE LOGIN
 // ═══════════════════════════════════════════════════════════════════════════════
-// ─── TEXTOS DEL LOGIN ─────────────────────────────────────────────────────────
-const LOGIN_TX: Record<string, Record<string, string>> = {
-  es: {
-    subtitulo: "Estándar — Sistema de Cotización Industrial",
-    sinCuenta: "¿No tienes cuenta?",
-    comprar: "Adquiere tu licencia aquí →",
-    iniciarSesion: "Iniciar sesión", registrarse: "Registrarse",
-    correo: "Correo electrónico", contrasena: "Contraseña (mínimo 6 caracteres)",
-    entrar: "Entrar", crearCuenta: "Crear cuenta", enviarEnlace: "Enviar enlace",
-    procesando: "Procesando...",
-    errorLogin: "Correo o contraseña incorrectos.",
-    cuentaCreada: "¡Cuenta creada! Revisa tu correo para confirmar.",
-    enlaceEnviado: "Te enviamos un enlace para restablecer tu contraseña.",
-    olvidaste: "¿Olvidaste tu contraseña?", volver: "← Volver",
-    resetDesc: "Ingresa tu correo para recibir el enlace de recuperación.",
-  },
-  en: {
-    subtitulo: "Standard — Industrial Quoting System",
-    sinCuenta: "Don't have an account?",
-    comprar: "Get your license here →",
-    iniciarSesion: "Sign in", registrarse: "Sign up",
-    correo: "Email address", contrasena: "Password (minimum 6 characters)",
-    entrar: "Sign in", crearCuenta: "Create account", enviarEnlace: "Send link",
-    procesando: "Processing...",
-    errorLogin: "Incorrect email or password.",
-    cuentaCreada: "Account created! Check your email to confirm.",
-    enlaceEnviado: "We sent you a link to reset your password.",
-    olvidaste: "Forgot your password?", volver: "← Back",
-    resetDesc: "Enter your email to receive a password reset link.",
-  },
-};
-
 function PantallaLogin({ onIdiomaElegido }: { onIdiomaElegido?: (id: string) => void }) {
-  const [modo, setModo]       = useState<"login"|"registro"|"reset">("login");
-  const [email, setEmail]     = useState("");
-  const [password, setPass]   = useState("");
-  const [cargando, setCarg]   = useState(false);
-  const [mensaje, setMsg]     = useState<{tipo:string;texto:string}|null>(null);
-  const [lang, setLang]       = useState<"es"|"en">("es");
+  const [modo, setModo]   = useState<"login"|"registro"|"reset">("login");
+  const [email, setEmail] = useState("");
+  const [password, setPass] = useState("");
+  const [cargando, setCarg] = useState(false);
+  const [mensaje, setMsg]   = useState<{tipo:string;texto:string}|null>(null);
+  const [lang, setLang]     = useState<"es"|"en">("es");
   const t  = TEMAS.oscuro;
-  const lx = LOGIN_TX[lang];
+  const lx = T18N[lang] || T18N.es;
 
   async function handleLogin(e: any) {
     e.preventDefault(); setCarg(true); setMsg(null);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) { setMsg({ tipo:"error", texto: lx.errorLogin }); setCarg(false); return; }
-    onIdiomaElegido?.(lang); // ← pasar idioma elegido a la app
+    if (error) { setMsg({ tipo:"error", texto: lx.loginErrorPass }); setCarg(false); return; }
+    onIdiomaElegido?.(lang);
     setCarg(false);
   }
   async function handleRegistro(e: any) {
     e.preventDefault(); setCarg(true); setMsg(null);
     const { error } = await supabase.auth.signUp({ email, password });
     if (error) setMsg({ tipo:"error", texto: error.message });
-    else { setMsg({ tipo:"ok", texto: lx.cuentaCreada }); onIdiomaElegido?.(lang); }
+    else { setMsg({ tipo:"ok", texto: lx.loginCuentaCreada }); onIdiomaElegido?.(lang); }
     setCarg(false);
   }
   async function handleReset(e: any) {
     e.preventDefault(); setCarg(true); setMsg(null);
     const { error } = await supabase.auth.resetPasswordForEmail(email);
     if (error) setMsg({ tipo:"error", texto: error.message });
-    else setMsg({ tipo:"ok", texto: lx.enlaceEnviado });
+    else setMsg({ tipo:"ok", texto: lx.loginEnlaceEnv });
     setCarg(false);
   }
 
@@ -263,22 +249,22 @@ function PantallaLogin({ onIdiomaElegido }: { onIdiomaElegido?: (id: string) => 
           ))}
         </div>
 
-        {/* Logo y título */}
+        {/* Logo */}
         <div style={{ textAlign:"center", marginBottom:32 }}>
           <div style={{ display:"inline-flex", alignItems:"center", justifyContent:"center", width:56, height:56, borderRadius:14, background:t.accent, marginBottom:16, fontSize:26 }}>⚙️</div>
           <div style={{ fontSize:24, fontWeight:800, color:t.text }}>CotizadorPRO</div>
-          <div style={{ fontSize:13, color:t.textSub, marginTop:4 }}>{lx.subtitulo}</div>
+          <div style={{ fontSize:13, color:t.textSub, marginTop:4 }}>{lx.loginSubtitulo}</div>
           <div style={{ fontSize:11, color:"#475569", marginTop:10, lineHeight:1.6 }}>
-            {lx.sinCuenta}{" "}
+            {lx.loginSinCuenta}{" "}
             <a href="https://hotmart.com/es/marketplace/productos/cotizadorpro-estandar-sistema-de-cotizacion-para-talleres-de-maquinado/G106237955N"
               target="_blank" rel="noopener noreferrer"
               style={{ color:"#60a5fa", textDecoration:"none", fontWeight:600 }}>
-              {lx.comprar}
+              {lx.loginComprar}
             </a>
           </div>
         </div>
 
-        {/* Tabs login/registro */}
+        {/* Tabs */}
         {modo !== "reset" && (
           <div style={{ display:"flex", marginBottom:28, background:t.input, borderRadius:8, padding:4 }}>
             {(["login","registro"] as const).map(m => (
@@ -287,7 +273,7 @@ function PantallaLogin({ onIdiomaElegido }: { onIdiomaElegido?: (id: string) => 
                 background:modo===m?t.accent:"transparent",
                 color:modo===m?"#fff":t.textSub, fontWeight:600, fontSize:14,
               }}>
-                {m==="login" ? lx.iniciarSesion : lx.registrarse}
+                {m==="login" ? lx.loginIniciar : lx.loginRegistrar}
               </button>
             ))}
           </div>
@@ -296,11 +282,11 @@ function PantallaLogin({ onIdiomaElegido }: { onIdiomaElegido?: (id: string) => 
         {/* Formulario */}
         <form onSubmit={modo==="login"?handleLogin:modo==="registro"?handleRegistro:handleReset}>
           <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
-            {modo === "reset" && <div style={{ color:t.textSub, fontSize:14, lineHeight:1.5 }}>{lx.resetDesc}</div>}
-            <input style={inp} type="email" placeholder={lx.correo} value={email} onChange={e=>setEmail(e.target.value)} required />
-            {modo !== "reset" && <input style={inp} type="password" placeholder={lx.contrasena} value={password} onChange={e=>setPass(e.target.value)} required minLength={6} />}
+            {modo === "reset" && <div style={{ color:t.textSub, fontSize:14, lineHeight:1.5 }}>{lx.loginReset}</div>}
+            <input style={inp} type="email" placeholder={lx.loginCorreo} value={email} onChange={e=>setEmail(e.target.value)} required />
+            {modo !== "reset" && <input style={inp} type="password" placeholder={lx.loginPass} value={password} onChange={e=>setPass(e.target.value)} required minLength={6} />}
             <button type="submit" style={btn} disabled={cargando}>
-              {cargando ? lx.procesando : modo==="login" ? lx.entrar : modo==="registro" ? lx.crearCuenta : lx.enviarEnlace}
+              {cargando ? lx.loginProcesando : modo==="login" ? lx.loginEntrar : modo==="registro" ? lx.loginCrear : lx.loginEnviar}
             </button>
           </div>
         </form>
@@ -317,8 +303,8 @@ function PantallaLogin({ onIdiomaElegido }: { onIdiomaElegido?: (id: string) => 
 
         {/* Links */}
         <div style={{ marginTop:20, textAlign:"center", fontSize:13, color:t.textSub }}>
-          {modo==="login" && <span onClick={()=>{setModo("reset");setMsg(null);}} style={{ cursor:"pointer", color:t.accent }}>{lx.olvidaste}</span>}
-          {modo==="reset" && <span onClick={()=>{setModo("login");setMsg(null);}} style={{ cursor:"pointer", color:t.accent }}>{lx.volver}</span>}
+          {modo==="login" && <span onClick={()=>{setModo("reset");setMsg(null);}} style={{ cursor:"pointer", color:t.accent }}>{lx.loginOlvide}</span>}
+          {modo==="reset" && <span onClick={()=>{setModo("login");setMsg(null);}} style={{ cursor:"pointer", color:t.accent }}>{lx.loginVolver}</span>}
         </div>
 
       </div>
