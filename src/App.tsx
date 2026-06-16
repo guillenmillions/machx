@@ -32,6 +32,12 @@ const T18N: Record<string, Record<string, string>> = {
     guardar:"Guardar Cotización", nuevaCot:"Nueva Cotización",
     misCots:"Mis Cotizaciones", materiales:"Materiales",
     procesos:"Procesos", configuracion:"Configuración",
+    pagoPorDefecto:"Anticipo 50% / Liquidación a entrega",
+    borrador:"Borrador", enviada:"Enviada", aprobada:"Aprobada",
+    rechazada:"Rechazada", enProceso:"En Proceso", entregada:"Entregada",
+    impuesto:"IVA", sinImpuesto:"Precio sin impuestos — sujeto a régimen fiscal",
+    elaboroFirma:"Elaboró", autorizoFirma:"Autorizó / Cliente",
+    flete:"Fletes / Servicios adicionales",
   },
   en: {
     cotizacion:"QUOTATION", cliente:"Bill To", condiciones:"Terms",
@@ -43,6 +49,30 @@ const T18N: Record<string, Record<string, string>> = {
     guardar:"Save Quote", nuevaCot:"New Quote",
     misCots:"My Quotes", materiales:"Materials",
     procesos:"Processes", configuracion:"Settings",
+    pagoPorDefecto:"50% advance / balance on delivery",
+    borrador:"Draft", enviada:"Sent", aprobada:"Approved",
+    rechazada:"Rejected", enProceso:"In Progress", entregada:"Delivered",
+    impuesto:"Tax", sinImpuesto:"Price excludes taxes — subject to client tax regime",
+    elaboroFirma:"Prepared by", autorizoFirma:"Authorized / Client",
+    flete:"Freight & Additional Services",
+  },
+  pt: {
+    // Português Brasileiro — terminologia industrial correta
+    cotizacion:"COTAÇÃO", cliente:"Cliente", condiciones:"Condições",
+    entrega:"Entrega", pago:"Pagamento", vigencia:"Válido por",
+    descripcion:"Descrição dos Serviços", cant:"Qtd.", unidad:"Unidade",
+    pUnitario:"P. Unitário", total:"Total", subtotal:"Subtotal",
+    notas:"Observações", elaboro:"Elaborado por", autorizo:"Autorizado / Cliente",
+    dias:"dias", porConfirmar:"A confirmar", attn:"A/C:", plano:"Des.:",
+    guardar:"Salvar Cotação", nuevaCot:"Nova Cotação",
+    misCots:"Minhas Cotações", materiales:"Materiais",
+    procesos:"Processos", configuracion:"Configurações",
+    pagoPorDefecto:"50% antecipado / saldo na entrega",
+    borrador:"Rascunho", enviada:"Enviada", aprobada:"Aprovada",
+    rechazada:"Rejeitada", enProceso:"Em Produção", entregada:"Entregue",
+    impuesto:"ICMS/ISS", sinImpuesto:"Preço sem impostos — sujeito ao regime fiscal do cliente",
+    elaboroFirma:"Elaborado por", autorizoFirma:"Autorizado / Cliente",
+    flete:"Frete / Serviços Adicionais",
   },
 };
 
@@ -369,7 +399,21 @@ export default function CotizadorProEstandar() {
         .limit(1)
         .single();
       if (data && !error) {
-        setDatos({ ...DATOS_INICIALES, ...data.datos });
+        const idiomaGuardado = typeof localStorage !== "undefined"
+          ? localStorage.getItem("cot_lang") || "es" : "es";
+        setDatos({ ...DATOS_INICIALES, ...data.datos,
+          config: { ...DATOS_INICIALES.config, ...data.datos?.config,
+            idioma: idiomaGuardado,
+            // Si el usuario eligió inglés en el login, el PDF también va en inglés por defecto
+            // pero solo si no tenía ya una preferencia guardada en Supabase
+            ...(data.datos?.config?.idioma ? {} : { idioma: idiomaGuardado })
+          }
+        });
+      } else {
+        // Sin datos en Supabase — usuario nuevo, aplicar idioma del login
+        const idiomaGuardado = typeof localStorage !== "undefined"
+          ? localStorage.getItem("cot_lang") || "es" : "es";
+        setDatos(prev => ({ ...prev, config: { ...prev.config, idioma: idiomaGuardado } }));
       }
     })();
   }, [sesion]);
@@ -404,7 +448,9 @@ export default function CotizadorProEstandar() {
 
   const t        = TEMAS[datos.tema] || TEMAS.oscuro;
   const tamFuente = datos.tamTexto === "chico" ? 13 : datos.tamTexto === "grande" ? 16 : 14;
-  const tx        = T18N[datos.config?.idioma || "es"] || T18N.es;
+  const idiomaApp = datos.config?.idioma ||
+    (typeof localStorage !== "undefined" ? localStorage.getItem("cot_lang") || "es" : "es");
+  const tx = T18N[idiomaApp] || T18N.es;
 
   // ── Edición completa desde Mis Cotizaciones ──────────────────────────────────
   function handleEditarCompleto(cot: any, modo: "mismo"|"nuevo") {
@@ -519,7 +565,10 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, tx, cotEnEdicion
   const [buscaCli,        setBuscaCli]        = useState("");
   const [moneda,          setMoneda]          = useState(cot?.config?.moneda || datos.config?.moneda || "MXN");
   const [tc,              setTc]              = useState(cot?.config?.tc || datos.config?.tc || 17.5);
-  const [idioma,          setIdioma]          = useState(cot?.config?.idioma || datos.config?.idioma || "es");
+  const [idioma, setIdioma] = useState(() => {
+    try { return localStorage.getItem("cot_lang") || cot?.config?.idioma || datos.config?.idioma || "es"; }
+    catch { return cot?.config?.idioma || datos.config?.idioma || "es"; }
+  });
 
   function nuevaLinea() { return { id: Date.now() + Math.random(), nombrePartida:"", proceso:"", material:"", kg:0, horas:0, cantidad:1 }; }
 
@@ -1613,11 +1662,18 @@ function PestanaConfig({ datos, actualizarDatos, t, tamFuente, tx }: any) {
               onChange={e=>actualizarDatos({ config:{...datos.config,tc:parseFloat(e.target.value)||17.5} })}/>
           </div>
           <div>
-            <label style={label}>Idioma PDF por defecto</label>
-            <select style={inp} value={datos.config.idioma||"es"} onChange={e=>actualizarDatos({ config:{...datos.config,idioma:e.target.value} })}>
+            <label style={label}>Idioma del sistema y PDF</label>
+            <select style={inp} value={datos.config.idioma||"es"} onChange={e=>{
+              const nuevoIdioma = e.target.value;
+              actualizarDatos({ config:{...datos.config, idioma:nuevoIdioma} });
+              try { localStorage.setItem("cot_lang", nuevoIdioma); } catch {}
+            }}>
               <option value="es">🇲🇽 Español</option>
               <option value="en">🇺🇸 English</option>
             </select>
+            <div style={{ fontSize:10, color:t.textSub, marginTop:4 }}>
+              Cambia la interfaz y el idioma por defecto del PDF
+            </div>
           </div>
         </div>
         <ActualizarTC t={t} tamFuente={tamFuente} tcActual={datos.config.tc||17.5}
