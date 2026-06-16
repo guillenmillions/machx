@@ -33,6 +33,25 @@ const T18N: Record<string, Record<string, string>> = {
     impuesto:"IVA", sinImpuesto:"Precio sin impuestos — sujeto a régimen fiscal",
     elaboroFirma:"Elaboró", autorizoFirma:"Autorizó / Cliente",
     flete:"Fletes / Servicios adicionales",
+    // Labels campos cliente
+    empresaLbl:"Empresa *", contactoLbl:"Contacto", emailLbl:"Email",
+    telLbl:"Teléfono", ciudadLbl:"Ciudad", rfcLbl:"RFC",
+    razonLbl:"Razón Social", dirFiscalLbl:"Dirección Fiscal",
+    datosFiscalesLbl:"DATOS FISCALES (OPCIONAL)",
+    // Placeholders
+    phEmpresa:"Nombre de la empresa", phContacto:"Nombre del contacto",
+    phEmail:"correo@empresa.com", phTel:"+52 899 000 0000", phCiudad:"Ciudad",
+    phRFC:"RFC del cliente", phRazon:"Razón social completa",
+    phDir:"Calle, Colonia, C.P., Ciudad",
+    phEntrega:"Ej: 10 días hábiles", phDesc:"Ej: Fabricación de eje de transmisión AISI 1018",
+    phPartida:"Ej: Perno M12, Eje de transmisión, Soporte...",
+    phProceso:"Seleccionar proceso…", phMaterial:"Seleccionar material…",
+    // Nav
+    clientesNav:"👥 Clientes",
+    seleccionarCliente:"👥 Seleccionar cliente", phNota:"Ej: Tiempo de entrega 5 días hábiles", rfcTaller:"RFC del taller",
+    // Desglose
+    gastosDirectosPct:"Gastos Directos", gastosSGVPct:"Gastos SGV",
+    gastosDirectosLabel:tx.gastosDirectosLabel, gastosSGVLabel:tx.gastosSGVLabel,
     // Navegación
     guardar:"Guardar Cotización", nuevaCot:"Nueva Cotización",
     misCots:"Mis Cotizaciones", materiales:"Materiales",
@@ -72,7 +91,7 @@ const T18N: Record<string, Record<string, string>> = {
     folioCot:"Folio de Cotizaciones", monedaTC:"Moneda y Tipo de Cambio",
     apariencia:"Apariencia", impuestoVentas:"Impuesto sobre Ventas",
     // Pagos por defecto
-    pagoPorDefecto:"Anticipo 50% / Liquidación a entrega",
+    pagoPorDefecto:tx.pagoPorDefecto,
     // Onboarding
     bienvenido:"Bienvenido a CotizadorPRO",
     pasosTitulo:"Sigue estos 3 pasos para crear tu primera cotización profesional",
@@ -94,6 +113,25 @@ const T18N: Record<string, Record<string, string>> = {
     impuesto:"Tax", sinImpuesto:"Price excludes taxes — subject to client tax regime",
     elaboroFirma:"Prepared by", autorizoFirma:"Authorized / Client",
     flete:"Freight & Additional Services",
+    // Labels campos cliente
+    empresaLbl:"Company *", contactoLbl:"Contact", emailLbl:"Email",
+    telLbl:"Phone", ciudadLbl:"City", rfcLbl:"Tax ID",
+    razonLbl:"Legal Name", dirFiscalLbl:"Billing Address",
+    datosFiscalesLbl:"TAX INFORMATION (OPTIONAL)",
+    // Placeholders
+    phEmpresa:"Company name", phContacto:"Contact name",
+    phEmail:"email@company.com", phTel:"+1 000 000 0000", phCiudad:"City",
+    phRFC:"Customer Tax ID", phRazon:"Full legal name",
+    phDir:"Street, City, State, ZIP",
+    phEntrega:"e.g. 10 business days", phDesc:"e.g. Transmission shaft AISI 1018",
+    phPartida:"e.g. Bolt M12, Drive shaft, Bracket...",
+    phProceso:"Select process…", phMaterial:"Select material…",
+    // Nav
+    clientesNav:"👥 Customers",
+    seleccionarCliente:"👥 Select customer", phNota:"e.g. Delivery time 5 business days", rfcTaller:"Tax ID",
+    // Desglose
+    gastosDirectosPct:"Direct Overhead", gastosSGVPct:"SG&A Expenses",
+    gastosDirectosLabel:"Direct Overhead %", gastosSGVLabel:"SG&A %",
     // Navegación
     guardar:"Save Quote", nuevaCot:"New Quote",
     misCots:"My Quotes", materiales:"Materials",
@@ -155,6 +193,25 @@ const T18N: Record<string, Record<string, string>> = {
     impuesto:"ICMS/ISS", sinImpuesto:"Preço sem impostos — sujeito ao regime fiscal do cliente",
     elaboroFirma:"Elaborado por", autorizoFirma:"Autorizado / Cliente",
     flete:"Frete / Serviços Adicionais",
+    // Labels campos cliente
+    empresaLbl:"Empresa *", contactoLbl:"Contato", emailLbl:"E-mail",
+    telLbl:"Telefone", ciudadLbl:"Cidade", rfcLbl:"CNPJ/CPF",
+    razonLbl:"Razão Social", dirFiscalLbl:"Endereço Fiscal",
+    datosFiscalesLbl:"DADOS FISCAIS (OPCIONAL)",
+    // Placeholders
+    phEmpresa:"Nome da empresa", phContacto:"Nome do contato",
+    phEmail:"email@empresa.com", phTel:"+55 00 00000-0000", phCiudad:"Cidade",
+    phRFC:"CNPJ do cliente", phRazon:"Razão social completa",
+    phDir:"Rua, Bairro, CEP, Cidade",
+    phEntrega:"Ex: 10 dias úteis", phDesc:"Ex: Eixo de transmissão AISI 1018",
+    phPartida:"Ex: Parafuso M12, Eixo, Suporte...",
+    phProceso:"Selecionar processo…", phMaterial:"Selecionar material…",
+    // Nav
+    clientesNav:"👥 Clientes",
+    seleccionarCliente:"👥 Selecionar cliente", phNota:"Ex: Prazo de entrega 5 dias úteis", rfcTaller:"CNPJ/CPF",
+    // Desglose
+    gastosDirectosPct:"Despesas Diretas", gastosSGVPct:"Despesas G&A",
+    gastosDirectosLabel:"Despesas Diretas %", gastosSGVLabel:"G&A %",
     // Navegação
     guardar:"Salvar Cotação", nuevaCot:"Nova Cotação",
     misCots:"Minhas Cotações", materiales:"Materiais",
@@ -654,7 +711,7 @@ export default function CotizadorProEstandar() {
           { id:"lista",       label:`📁 ${tx.misCots}`      },
           { id:"materiales",  label:`🔩 ${tx.materiales}`   },
           { id:"procesos",    label:`⚙️ ${tx.procesos}`     },
-          { id:"clientes",    label:"👥 Clientes"           },
+          { id:"clientes",    label:`👥 ${tx.clientesNav.replace("👥 ","")}`           },
           { id:"config",      label:`🎛️ ${tx.configuracion}` },
         ].map(tab => (
           <button key={tab.id} onClick={()=>setPestana(tab.id)} style={{ padding:"14px 16px", border:"none", background:"transparent", cursor:"pointer", color:pestana===tab.id?t.accent:t.textSub, borderBottom:`2px solid ${pestana===tab.id?t.accent:"transparent"}`, fontWeight:pestana===tab.id?700:400, fontSize:tamFuente, fontFamily:`'${datos.fuente}',sans-serif`, whiteSpace:"nowrap" as const }}>
@@ -701,7 +758,7 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, tx, cotEnEdicion
   const [extras,          setExtras]          = useState(cot?.extras||0);
   const [nota,            setNota]            = useState(cot?.nota||"");
   const [entrega,         setEntrega]         = useState(cot?.cond?.entrega||"");
-  const [pago,            setPago]            = useState(cot?.cond?.pago||"Anticipo 50% / Liquidación a entrega");
+  const [pago,            setPago]            = useState(cot?.cond?.pago||tx.pagoPorDefecto);
   const [validez,         setValidez]         = useState(cot?.cond?.validez||30);
   const [showVistaCliente,setShowVistaCliente]= useState(false);
   const [showSelectorCli, setShowSelectorCli] = useState(false);
@@ -802,7 +859,7 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, tx, cotEnEdicion
     setFolio(generarFolio(configActualizado, nuevasCots));
     setClienteNombre(""); setClienteEmpresa(""); setClienteEmail(""); setClienteTel(""); setClienteCiudad("");
     setClienteRFC(""); setClienteRazon(""); setClienteDirFiscal("");
-    setDescripcion(""); setLineas([nuevaLinea()]); setExtras(0); setNota(""); setEntrega(""); setPago("Anticipo 50% / Liquidación a entrega");
+    setDescripcion(""); setLineas([nuevaLinea()]); setExtras(0); setNota(""); setEntrega(""); setPago(tx.pagoPorDefecto);
     mostrarNotif(modoEdicion==="mismo" ? "Cotización actualizada correctamente." : "Cotización guardada correctamente.", "ok");
   }
 
@@ -844,7 +901,7 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, tx, cotEnEdicion
       {showSelectorCli && (
         <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.6)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:200 }} onClick={()=>setShowSelectorCli(false)}>
           <div style={{ background:t.card, borderRadius:14, padding:28, width:520, maxHeight:"80vh", display:"flex", flexDirection:"column", border:`1px solid ${t.border}` }} onClick={(e:any)=>e.stopPropagation()}>
-            <div style={{ fontWeight:700, fontSize:16, color:t.text, marginBottom:14 }}>👥 Seleccionar cliente</div>
+            <div style={{ fontWeight:700, fontSize:16, color:t.text, marginBottom:14 }}>{tx.seleccionarCliente}</div>
             <input style={{ ...inp, marginBottom:12 }} placeholder="Buscar por nombre o empresa…" value={buscaCli} onChange={e=>setBuscaCli(e.target.value)} />
             <div style={{ overflowY:"auto", flex:1 }}>
               {(datos.clientes||[]).length === 0
@@ -876,19 +933,19 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, tx, cotEnEdicion
           </button>
         </div>
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:12 }}>
-          <div><label style={label}>Empresa *</label><input style={inp} value={clienteEmpresa} onChange={e=>setClienteEmpresa(e.target.value)} placeholder="Nombre de la empresa"/></div>
-          <div><label style={label}>Contacto</label><input style={inp} value={clienteNombre} onChange={e=>setClienteNombre(e.target.value)} placeholder="Nombre del contacto"/></div>
-          <div><label style={label}>Email</label><input style={inp} value={clienteEmail} onChange={e=>setClienteEmail(e.target.value)} placeholder="correo@empresa.com"/></div>
-          <div><label style={label}>Teléfono</label><input style={inp} value={clienteTel} onChange={e=>setClienteTel(e.target.value)} placeholder="+52 899 000 0000"/></div>
-          <div><label style={label}>Ciudad</label><input style={inp} value={clienteCiudad} onChange={e=>setClienteCiudad(e.target.value)} placeholder="Reynosa, Tamps."/></div>
+          <div><label style={label}>{tx.empresaLbl}</label><input style={inp} value={clienteEmpresa} onChange={e=>setClienteEmpresa(e.target.value)} placeholder={tx.phEmpresa}/></div>
+          <div><label style={label}>Contacto</label><input style={inp} value={clienteNombre} onChange={e=>setClienteNombre(e.target.value)} placeholder={tx.phContacto}/></div>
+          <div><label style={label}>Email</label><input style={inp} value={clienteEmail} onChange={e=>setClienteEmail(e.target.value)} placeholder={tx.phEmail}/></div>
+          <div><label style={label}>Teléfono</label><input style={inp} value={clienteTel} onChange={e=>setClienteTel(e.target.value)} placeholder={tx.phTel}/></div>
+          <div><label style={label}>Ciudad</label><input style={inp} value={clienteCiudad} onChange={e=>setClienteCiudad(e.target.value)} placeholder={tx.phCiudad}/></div>
         </div>
         {/* Datos fiscales */}
         <div style={{ background:t.input, borderRadius:8, padding:14, marginBottom:8 }}>
           <div style={{ fontSize:11, fontWeight:700, color:t.textSub, textTransform:"uppercase" as const, letterSpacing:"0.07em", marginBottom:10 }}>🏛 Datos Fiscales (opcional)</div>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-            <div><label style={label}>RFC</label><input style={inp} value={clienteRFC} onChange={e=>setClienteRFC(e.target.value.toUpperCase())} placeholder="RFC del cliente"/></div>
-            <div><label style={label}>Razón Social</label><input style={inp} value={clienteRazon} onChange={e=>setClienteRazon(e.target.value)} placeholder="Razón social completa"/></div>
-            <div style={{ gridColumn:"1/-1" }}><label style={label}>Dirección Fiscal</label><input style={inp} value={clienteDirFiscal} onChange={e=>setClienteDirFiscal(e.target.value)} placeholder="Calle, Colonia, C.P., Ciudad"/></div>
+            <div><label style={label}>RFC</label><input style={inp} value={clienteRFC} onChange={e=>setClienteRFC(e.target.value.toUpperCase())} placeholder={tx.phRFC}/></div>
+            <div><label style={label}>Razón Social</label><input style={inp} value={clienteRazon} onChange={e=>setClienteRazon(e.target.value)} placeholder={tx.phRazon}/></div>
+            <div style={{ gridColumn:"1/-1" }}><label style={label}>Dirección Fiscal</label><input style={inp} value={clienteDirFiscal} onChange={e=>setClienteDirFiscal(e.target.value)} placeholder={tx.phDir}/></div>
           </div>
         </div>
         {clienteEmpresa && (
@@ -913,7 +970,7 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, tx, cotEnEdicion
               {Object.values(MONEDAS).map(m=><option key={m.id} value={m.id}>{m.flag} {m.id} — {m.label}</option>)}
             </select>
           </div>
-          <div><label style={label}>Tiempo de Entrega</label><input style={inp} value={entrega} onChange={e=>setEntrega(e.target.value)} placeholder="Ej: 10 días hábiles"/></div>
+          <div><label style={label}>Tiempo de Entrega</label><input style={inp} value={entrega} onChange={e=>setEntrega(e.target.value)} placeholder={tx.phEntrega}/></div>
           <div><label style={label}>Condiciones de Pago</label><input style={inp} value={pago} onChange={e=>setPago(e.target.value)}/></div>
           <div><label style={label}>Idioma del PDF</label>
             <select style={inp} value={idioma} onChange={e=>setIdioma(e.target.value)}>
@@ -925,7 +982,7 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, tx, cotEnEdicion
           {moneda !== "MXN" && (
             <div><label style={label}>T.C. USD → MXN</label><input type="number" style={inp} value={tc} min={1} step={0.1} onChange={e=>setTc(Number(e.target.value))}/></div>
           )}
-          <div style={{ gridColumn:"1/-1" }}><label style={label}>Descripción del trabajo</label><input style={inp} value={descripcion} onChange={e=>setDescripcion(e.target.value)} placeholder="Ej: Fabricación de eje de transmisión AISI 1018"/></div>
+          <div style={{ gridColumn:"1/-1" }}><label style={label}>Descripción del trabajo</label><input style={inp} value={descripcion} onChange={e=>setDescripcion(e.target.value)} placeholder={tx.phDesc}/></div>
         </div>
       </div>
 
@@ -949,7 +1006,7 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, tx, cotEnEdicion
                 </span>
                 <input
                   value={l.nombrePartida||""}
-                  placeholder={`Ej: Perno M12, Eje de transmisión, Soporte...`}
+                  placeholder={tx.phPartida}
                   onChange={e=>cambiarLinea(l.id,"nombrePartida",e.target.value)}
                   style={{ flex:1, background:"rgba(255,255,255,0.15)", border:"1px solid rgba(255,255,255,0.3)", borderRadius:6, padding:"6px 12px", color:"white", fontSize:tamFuente, fontWeight:700, outline:"none" }}
                 />
@@ -976,14 +1033,14 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, tx, cotEnEdicion
                   <div>
                     <div style={{ fontSize:11, color:t.textSub, marginBottom:4 }}>Proceso</div>
                     <select style={inp} value={l.proceso} onChange={e=>cambiarLinea(l.id,"proceso",e.target.value)}>
-                      <option value="">Seleccionar proceso…</option>
+                      <option value="">{tx.phProceso}</option>
                       {datos.procesos.map((p: any)=><option key={p.id} value={p.nombre}>{p.nombre} — ${p.tarifa}/hr</option>)}
                     </select>
                   </div>
                   <div>
                     <div style={{ fontSize:11, color:t.textSub, marginBottom:4 }}>Material</div>
                     <select style={inp} value={l.material} onChange={e=>cambiarLinea(l.id,"material",e.target.value)}>
-                      <option value="">Seleccionar material…</option>
+                      <option value="">{tx.phMaterial}</option>
                       {datos.materiales.map((m: any)=><option key={m.id} value={m.nombre}>{m.nombre} — ${m.precio}/kg</option>)}
                     </select>
                   </div>
@@ -1034,8 +1091,8 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, tx, cotEnEdicion
             [tx.materialTotal,            totalMaterial],
             [tx.extrasFlete,           Number(extras)||0],
             [tx.costoDirecto,             res.costoDirecto],
-            [`Gastos Directos (${pctGD}%)`,res.gastosDirectos],
-            [`Gastos SGV (${pctSGV}%)`,   res.gastosSGV],
+            [`${tx.gastosDirectosPct} (${pctGD}%)`,res.gastosDirectos],
+            [`${tx.gastosSGVPct} (${pctSGV}%)`,   res.gastosSGV],
             [tx.costoEmpresa,             res.costoEmpresa],
           ].map(([k,v])=>(
             <div key={String(k)} style={{ display:"flex", justifyContent:"space-between", padding:"7px 0", borderBottom:`1px solid ${t.border}`, fontSize:tamFuente }}>
@@ -1068,7 +1125,7 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, tx, cotEnEdicion
           </div>
           <div style={{ marginTop:14 }}>
             <label style={label}>{tx.notaCliente}</label>
-            <textarea style={{ ...inp, height:60, resize:"vertical" as const }} value={nota} onChange={e=>setNota(e.target.value)} placeholder="Ej: Tiempo de entrega 5 días hábiles"/>
+            <textarea style={{ ...inp, height:60, resize:"vertical" as const }} value={nota} onChange={e=>setNota(e.target.value)} placeholder={tx.phNota}/>
           </div>
           <div style={{ display:"flex", gap:10, marginTop:14 }}>
             <button onClick={()=>setShowVistaCliente(true)} style={{ flex:1, padding:"11px 0", borderRadius:8, border:`1px solid ${t.border}`, background:"transparent", color:t.text, cursor:"pointer", fontWeight:600, fontSize:tamFuente }}>
@@ -1489,14 +1546,14 @@ function PestanaClientes({ datos, actualizarDatos, t, tamFuente, tx, mostrarNoti
           💡 Los clientes guardados aquí se cargan automáticamente al cotizar — sin volver a escribir sus datos.
         </div>
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:12 }}>
-          <div><label style={label}>Empresa *</label><input style={inp} value={nuevo.empresa} onChange={e=>setNuevo(p=>({...p,empresa:e.target.value}))} placeholder="Nombre de la empresa"/></div>
-          <div><label style={label}>Contacto</label><input style={inp} value={nuevo.nombre} onChange={e=>setNuevo(p=>({...p,nombre:e.target.value}))} placeholder="Nombre del contacto"/></div>
-          <div><label style={label}>Email</label><input style={inp} value={nuevo.email} onChange={e=>setNuevo(p=>({...p,email:e.target.value}))} placeholder="correo@empresa.com"/></div>
-          <div><label style={label}>Teléfono</label><input style={inp} value={nuevo.tel} onChange={e=>setNuevo(p=>({...p,tel:e.target.value}))} placeholder="+52 899 000 0000"/></div>
-          <div><label style={label}>Ciudad</label><input style={inp} value={nuevo.ciudad} onChange={e=>setNuevo(p=>({...p,ciudad:e.target.value}))} placeholder="Monterrey, N.L."/></div>
-          <div><label style={label}>RFC</label><input style={inp} value={nuevo.rfc} onChange={e=>setNuevo(p=>({...p,rfc:e.target.value.toUpperCase()}))} placeholder="RFC del cliente"/></div>
-          <div><label style={label}>Razón Social</label><input style={inp} value={nuevo.razonSocial} onChange={e=>setNuevo(p=>({...p,razonSocial:e.target.value}))} placeholder="Razón social completa"/></div>
-          <div><label style={label}>Dirección Fiscal</label><input style={inp} value={nuevo.direccionFiscal} onChange={e=>setNuevo(p=>({...p,direccionFiscal:e.target.value}))} placeholder="Calle, Col., C.P., Ciudad"/></div>
+          <div><label style={label}>{tx.empresaLbl}</label><input style={inp} value={nuevo.empresa} onChange={e=>setNuevo(p=>({...p,empresa:e.target.value}))} placeholder={tx.phEmpresa}/></div>
+          <div><label style={label}>Contacto</label><input style={inp} value={nuevo.nombre} onChange={e=>setNuevo(p=>({...p,nombre:e.target.value}))} placeholder={tx.phContacto}/></div>
+          <div><label style={label}>Email</label><input style={inp} value={nuevo.email} onChange={e=>setNuevo(p=>({...p,email:e.target.value}))} placeholder={tx.phEmail}/></div>
+          <div><label style={label}>Teléfono</label><input style={inp} value={nuevo.tel} onChange={e=>setNuevo(p=>({...p,tel:e.target.value}))} placeholder={tx.phTel}/></div>
+          <div><label style={label}>Ciudad</label><input style={inp} value={nuevo.ciudad} onChange={e=>setNuevo(p=>({...p,ciudad:e.target.value}))} placeholder={tx.phCiudad}/></div>
+          <div><label style={label}>RFC</label><input style={inp} value={nuevo.rfc} onChange={e=>setNuevo(p=>({...p,rfc:e.target.value.toUpperCase()}))} placeholder={tx.phRFC}/></div>
+          <div><label style={label}>Razón Social</label><input style={inp} value={nuevo.razonSocial} onChange={e=>setNuevo(p=>({...p,razonSocial:e.target.value}))} placeholder={tx.phRazon}/></div>
+          <div><label style={label}>Dirección Fiscal</label><input style={inp} value={nuevo.direccionFiscal} onChange={e=>setNuevo(p=>({...p,direccionFiscal:e.target.value}))} placeholder={tx.phDir}/></div>
         </div>
         <button onClick={agregar} style={{ padding:"9px 20px", borderRadius:8, border:"none", background:t.accent, color:"#fff", fontWeight:700, cursor:"pointer", fontSize:tamFuente }}>{tx.agregarCliente}</button>
       </div>
@@ -1504,7 +1561,7 @@ function PestanaClientes({ datos, actualizarDatos, t, tamFuente, tx, mostrarNoti
       {/* Lista */}
       <div style={{ background:t.card, borderRadius:12, border:`1px solid ${t.border}`, padding:24 }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
-          <div style={{ fontWeight:700, fontSize:tamFuente+1, color:t.text }}>👥 Clientes ({clientes.length})</div>
+          <div style={{ fontWeight:700, fontSize:tamFuente+1, color:t.text }}>{`👥 ${tx.clientesNav.replace("👥 ","")} (${clientes.length})`}</div>
           <input style={{ ...inp, width:240 }} placeholder="Buscar…" value={busca} onChange={e=>setBusca(e.target.value)}/>
         </div>
         {clientesFiltrados.length === 0
@@ -1703,7 +1760,7 @@ function PestanaConfig({ datos, actualizarDatos, t, tamFuente, tx }: any) {
         <div style={{ background:t.input, borderRadius:8, padding:16 }}>
           <div style={{ fontSize:11, fontWeight:700, color:t.textSub, textTransform:"uppercase" as const, letterSpacing:"0.07em", marginBottom:12 }}>🏛 Datos Fiscales del Taller (aparecen en el PDF)</div>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-            <div><label style={label}>RFC del taller</label><input style={inp} value={datos.taller.rfc||""} onChange={e=>actualizarDatos({ taller:{...datos.taller,rfc:e.target.value.toUpperCase()} })}/></div>
+            <div><label style={label}>{tx.rfcTaller}</label><input style={inp} value={datos.taller.rfc||""} onChange={e=>actualizarDatos({ taller:{...datos.taller,rfc:e.target.value.toUpperCase()} })}/></div>
             <div><label style={label}>Razón Social</label><input style={inp} value={datos.taller.razonSocial||""} onChange={e=>actualizarDatos({ taller:{...datos.taller,razonSocial:e.target.value} })}/></div>
             <div style={{ gridColumn:"1/-1" }}><label style={label}>Dirección Fiscal</label><input style={inp} value={datos.taller.direccionFiscal||""} onChange={e=>actualizarDatos({ taller:{...datos.taller,direccionFiscal:e.target.value} })}/></div>
           </div>
@@ -1715,8 +1772,8 @@ function PestanaConfig({ datos, actualizarDatos, t, tamFuente, tx }: any) {
         <div style={{ fontWeight:700, fontSize:tamFuente+2, marginBottom:20, color:t.text }}>📊 Porcentajes de la Fórmula</div>
         <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:16 }}>
           {[
-            { key:"pctGD",     label:"Gastos Directos %"    },
-            { key:"pctSGV",    label:"Gastos SGV %"         },
+            { key:"pctGD",     label:tx.gastosDirectosLabel    },
+            { key:"pctSGV",    label:tx.gastosSGVLabel         },
             { key:"pctMargen", label:"Margen de Utilidad %" },
           ].map(({ key, label:lbl }) => (
             <div key={key}>
