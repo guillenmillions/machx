@@ -36,7 +36,8 @@ const TEMAS: Record<string, Record<string, string>> = {
   },
 };
 
-const T18N: Record<string, Record<string, string>> = {
+// ─── TRADUCCIONES ─────────────────────────────────────────────────────────────
+const TRADUCCIONES: Record<string, Record<string, string>> = {
   es: {
     cotizacion:"COTIZACIÓN", cliente:"Cliente", condiciones:"Condiciones",
     entrega:"Entrega", pago:"Pago", vigencia:"Vigencia",
@@ -68,7 +69,7 @@ const T18N: Record<string, Record<string, string>> = {
     seleccionarCliente:"Seleccionar cliente",
     empresa:"Empresa *", contacto:"Contacto", email:"Email",
     telefono:"Teléfono", ciudad:"Ciudad", rfc:"RFC",
-    razonSocial:"Razón Social", dirFiscal:"Dirección Fiscal",
+    razonSocial:"Razón Social", dirFiscal:"Dir. Fiscal",
     datosFiscales:"DATOS FISCALES (OPCIONAL)",
     folio:"Folio", validez:"Validez", monedaLbl:"Moneda",
     tiempoEntrega:"Tiempo de Entrega", condPago:"Condiciones de Pago",
@@ -84,30 +85,33 @@ const T18N: Record<string, Record<string, string>> = {
     phPartida:"Ej: Perno M12, Eje de transmisión, Soporte...",
     phProceso:"Seleccionar proceso…", phMaterial:"Seleccionar material…",
     phNota:"Ej: Tiempo de entrega 5 días hábiles",
+    phBuscar:"Buscar por nombre o empresa…",
     datosTaller:"Datos del Taller", rfcTaller:"RFC del taller",
+    nombreTaller:"Nombre del taller", logoTaller:"Logo del taller",
     pctFormula:"Porcentajes de la Fórmula",
     gastosDirectosLabel:"Gastos Directos %", gastosSGVLabel:"Gastos SGV %",
-    folioCot:"Folio de Cotizaciones", monedaTC:"Moneda y Tipo de Cambio",
-    idiomaSistema:"Idioma del sistema y PDF", apariencia:"Apariencia",
-    impuestoVentas:"Impuesto sobre Ventas",
-    pagoPorDefecto:"Anticipo 50% / Liquidación a entrega",
-    eliminar:"Eliminar", guardar:"Guardar", cancelar:"Cancelar",
-    buscar:"Buscar…", priceKg:"Precio por kg (MXN)", tarifaHr:"Tarifa por hora (MXN)",
-    dirFiscalCorta:"Dir. Fiscal", catalogoMat:"Catálogo de Materiales",
-    catalogoProc:"Catálogo de Procesos", processoMaq:"Proceso / Máquina",
-    tarifaHrCol:"Tarifa/hr", nombreMat:"Nombre del material",
-    cerrarSesion:"Cerrar sesión", buscarCliente:"Buscar por nombre o empresa…",
-    sinClientesCat2:"Sin clientes.", nombreMaterial:"Nombre del material",
-    nombreProceso:"Nombre del proceso", nombreTaller:"Nombre del taller",
-    logoTaller:"Logo del taller", prefijoFolio:"Prefijo del folio",
+    margenLabel:"Margen de Utilidad %",
+    folioCot:"Folio de Cotizaciones", prefijoFolio:"Prefijo del folio",
     siguienteNum:"Siguiente número", autoIncrementa:"Se incrementa automáticamente",
-    tamTexto:"Tamaño de texto",
+    monedaTC:"Moneda y Tipo de Cambio", idiomaSistema:"Idioma del sistema y PDF",
+    apariencia:"Apariencia", tamTexto:"Tamaño de texto",
+    impuestoVentas:"Impuesto sobre Ventas", nombreImpuesto:"Nombre del impuesto",
+    pctImpuesto:"Porcentaje (%)", mostrarPDF:"Mostrar en PDF",
+    siIncluir:"Sí, Incluir", noTasaCero:"No (tasa cero / exento)",
+    temaColor:"Tema de color", fuente:"Fuente", plantillaPDF:"Plantilla del PDF",
+    cerrarSesion:"Cerrar sesión", eliminar:"Eliminar",
+    guardarBtn:"Guardar", cancelar:"Cancelar",
+    catalogoMat:"Catálogo de Materiales", catalogoProc:"Catálogo de Procesos",
+    processoMaq:"Proceso / Máquina", tarifaHrCol:"Tarifa/hr",
+    nombreMat:"Nombre del material", nombreProc:"Nombre del proceso",
+    precioKg:"Precio por kg (MXN)", tarifaHr:"Tarifa por hora (MXN)",
+    agregarBtn:"+ Agregar", vistaPrev:"Vista previa",
     bienvenido:"Bienvenido a CotizadorPRO",
     paso1Tit:"Configura tu taller", paso2Tit:"Agrega tu primer cliente",
     paso3Tit:"Crea tu primera cotización",
+    pagoPorDefecto:"Anticipo 50% / Liquidación a entrega",
   },
   en: {
-    // PDF
     cotizacion:"QUOTATION", cliente:"Bill To", condiciones:"Terms",
     entrega:"Delivery", pago:"Payment", vigencia:"Valid for",
     descripcion:"Services Description", cant:"Qty.", unidad:"Unit",
@@ -116,16 +120,12 @@ const T18N: Record<string, Record<string, string>> = {
     dias:"days", porConfirmar:"To be confirmed", attn:"Attn:", plano:"Dwg:",
     impuesto:"Tax", sinImpuesto:"Price excludes taxes",
     flete:"Freight & Additional Services",
-    // Navigation
     guardar:"Save Quote", nuevaCot:"New Quote",
     misCots:"My Quotes", materiales:"Materials",
     procesos:"Processes", configuracion:"Settings", clientes:"Customers",
-    // Quote status
     borrador:"Draft", enviada:"Sent", aprobada:"Approved",
     rechazada:"Rejected", enProceso:"In Progress", entregada:"Delivered",
-    // Units
     pza:"pc", kg:"kg", hr:"hr", m:"m", ft:"ft", pulg:"in", lote:"lot",
-    // Interface
     datosCli:"Customer Data", datosCot:"Quote Details",
     partidas:"Work Items", desglose:"Cost Breakdown",
     resultado:"Result", notaCliente:"Note to customer",
@@ -133,25 +133,22 @@ const T18N: Record<string, Record<string, string>> = {
     sinClientes:"No customers in catalog.", agregarPartida:"+ Add item",
     detalleInterno:"Internal shop detail", extrasFlete:"Freight & Extras",
     laborTotal:"Total labor", materialTotal:"Total material",
-    costoDirecto:"Direct Cost",
-    gastosDir:"Direct Overhead", gastosSGV:"SG&A Expenses",
-    costoEmpresa:"Total Cost", precioVenta:"SALE PRICE",
-    utilidad:"Profit", margenReal:"Gross margin", vistaPDF:"Preview / PDF",
-    // Customers
+    costoDirecto:"Direct Cost", gastosDir:"Direct Overhead",
+    gastosSGV:"SG&A Expenses", costoEmpresa:"Total Cost",
+    precioVenta:"SALE PRICE", utilidad:"Profit",
+    margenReal:"Gross margin", vistaPDF:"Preview / PDF",
     agregarCliente:"+ Add customer", sinClientesCat:"No customers.",
     agregarClienteTit:"Add customer to catalog",
     seleccionarCliente:"Select customer",
-    // Field labels
     empresa:"Company *", contacto:"Contact", email:"Email",
     telefono:"Phone", ciudad:"City", rfc:"Tax ID",
-    razonSocial:"Legal Name", dirFiscal:"Billing Address",
+    razonSocial:"Legal Name", dirFiscal:"Billing Addr.",
     datosFiscales:"TAX INFORMATION (OPTIONAL)",
     folio:"Quote No.", validez:"Valid for", monedaLbl:"Currency",
     tiempoEntrega:"Lead Time", condPago:"Payment Terms",
     idiomaPDF:"PDF Language", descTrabajo:"Work description",
     proceso:"Process", materialLbl:"Material", horas:"Hours ea.",
     kgPzas:"Kg ea.", cantidad:"Quantity",
-    // Placeholders
     phEmpresa:"Company name", phContacto:"Contact name",
     phEmail:"email@company.com", phTel:"+1 000 000 0000",
     phCiudad:"City", phRFC:"Customer Tax ID",
@@ -161,22 +158,33 @@ const T18N: Record<string, Record<string, string>> = {
     phPartida:"e.g. Bolt M12, Drive shaft, Bracket...",
     phProceso:"Select process…", phMaterial:"Select material…",
     phNota:"e.g. Delivery time 5 business days",
-    // Settings
+    phBuscar:"Search by name or company…",
     datosTaller:"Shop Data", rfcTaller:"Tax ID",
+    nombreTaller:"Shop name", logoTaller:"Shop logo",
     pctFormula:"Formula Percentages",
     gastosDirectosLabel:"Direct Overhead %", gastosSGVLabel:"SG&A %",
-    folioCot:"Quote Numbering", monedaTC:"Currency & Exchange Rate",
-    idiomaSistema:"System & PDF Language", apariencia:"Appearance",
-    impuestoVentas:"Sales Tax",
-    // Payment
-    pagoPorDefecto:"50% advance / balance on delivery",
-    // Onboarding
+    margenLabel:"Profit Margin %",
+    folioCot:"Quote Numbering", prefijoFolio:"Prefix",
+    siguienteNum:"Next number", autoIncrementa:"Auto-increments",
+    monedaTC:"Currency & Exchange Rate", idiomaSistema:"System & PDF Language",
+    apariencia:"Appearance", tamTexto:"Text size",
+    impuestoVentas:"Sales Tax", nombreImpuesto:"Tax name",
+    pctImpuesto:"Percentage (%)", mostrarPDF:"Show in PDF",
+    siIncluir:"Yes, Include", noTasaCero:"No (zero rate / exempt)",
+    temaColor:"Color theme", fuente:"Font", plantillaPDF:"PDF Template",
+    cerrarSesion:"Sign out", eliminar:"Delete",
+    guardarBtn:"Save", cancelar:"Cancel",
+    catalogoMat:"Materials Catalog", catalogoProc:"Processes Catalog",
+    processoMaq:"Process / Machine", tarifaHrCol:"Rate/hr",
+    nombreMat:"Material name", nombreProc:"Process name",
+    precioKg:"Price per kg", tarifaHr:"Rate per hour",
+    agregarBtn:"+ Add", vistaPrev:"Preview",
     bienvenido:"Welcome to CotizadorPRO",
     paso1Tit:"Set up your shop", paso2Tit:"Add your first customer",
     paso3Tit:"Create your first quote",
+    pagoPorDefecto:"50% advance / balance on delivery",
   },
   pt: {
-    // PDF
     cotizacion:"COTAÇÃO", cliente:"Cliente", condiciones:"Condições",
     entrega:"Entrega", pago:"Pagamento", vigencia:"Válido por",
     descripcion:"Descrição dos Serviços", cant:"Qtd.", unidad:"Unidade",
@@ -185,16 +193,12 @@ const T18N: Record<string, Record<string, string>> = {
     dias:"dias", porConfirmar:"A confirmar", attn:"A/C:", plano:"Des.:",
     impuesto:"ICMS/ISS", sinImpuesto:"Preço sem impostos",
     flete:"Frete / Serviços Adicionais",
-    // Navegação
     guardar:"Salvar Cotação", nuevaCot:"Nova Cotação",
     misCots:"Minhas Cotações", materiales:"Materiais",
     procesos:"Processos", configuracion:"Configurações", clientes:"Clientes",
-    // Estados
     borrador:"Rascunho", enviada:"Enviada", aprobada:"Aprovada",
     rechazada:"Rejeitada", enProceso:"Em Produção", entregada:"Entregue",
-    // Unidades
     pza:"pc", kg:"kg", hr:"hr", m:"m", ft:"ft", pulg:"pol", lote:"lote",
-    // Interface
     datosCli:"Dados do Cliente", datosCot:"Detalhes da Cotação",
     partidas:"Itens do Trabalho", desglose:"Detalhamento de Custos",
     resultado:"Resultado", notaCliente:"Observação ao cliente",
@@ -202,25 +206,22 @@ const T18N: Record<string, Record<string, string>> = {
     sinClientes:"Sem clientes no catálogo.", agregarPartida:"+ Adicionar item",
     detalleInterno:"Detalhe interno da oficina", extrasFlete:"Frete / Extras",
     laborTotal:"Total mão de obra", materialTotal:"Total material",
-    costoDirecto:"Custo Direto",
-    gastosDir:"Despesas Diretas", gastosSGV:"Despesas G&A",
-    costoEmpresa:"Custo Total", precioVenta:"PREÇO DE VENDA",
-    utilidad:"Lucro", margenReal:"Margem bruta", vistaPDF:"Visualizar / PDF",
-    // Clientes
+    costoDirecto:"Custo Direto", gastosDir:"Despesas Diretas",
+    gastosSGV:"Despesas G&A", costoEmpresa:"Custo Total",
+    precioVenta:"PREÇO DE VENDA", utilidad:"Lucro",
+    margenReal:"Margem bruta", vistaPDF:"Visualizar / PDF",
     agregarCliente:"+ Adicionar cliente", sinClientesCat:"Sem clientes.",
     agregarClienteTit:"Adicionar cliente ao catálogo",
     seleccionarCliente:"Selecionar cliente",
-    // Campos
     empresa:"Empresa *", contacto:"Contato", email:"E-mail",
     telefono:"Telefone", ciudad:"Cidade", rfc:"CNPJ/CPF",
-    razonSocial:"Razão Social", dirFiscal:"Endereço Fiscal",
+    razonSocial:"Razão Social", dirFiscal:"End. Fiscal",
     datosFiscales:"DADOS FISCAIS (OPCIONAL)",
     folio:"Nº Cotação", validez:"Válido por", monedaLbl:"Moeda",
     tiempoEntrega:"Prazo de Entrega", condPago:"Condições de Pagamento",
     idiomaPDF:"Idioma do PDF", descTrabajo:"Descrição do trabalho",
     proceso:"Processo", materialLbl:"Material", horas:"Horas un.",
     kgPzas:"Kg un.", cantidad:"Quantidade",
-    // Placeholders
     phEmpresa:"Nome da empresa", phContacto:"Nome do contato",
     phEmail:"email@empresa.com", phTel:"+55 00 00000-0000",
     phCiudad:"Cidade", phRFC:"CNPJ do cliente",
@@ -230,22 +231,43 @@ const T18N: Record<string, Record<string, string>> = {
     phPartida:"Ex: Parafuso M12, Eixo, Suporte...",
     phProceso:"Selecionar processo…", phMaterial:"Selecionar material…",
     phNota:"Ex: Prazo de entrega 5 dias úteis",
-    // Configuração
+    phBuscar:"Buscar por nome ou empresa…",
     datosTaller:"Dados da Oficina", rfcTaller:"CNPJ/CPF",
+    nombreTaller:"Nome da oficina", logoTaller:"Logo da oficina",
     pctFormula:"Percentuais da Fórmula",
     gastosDirectosLabel:"Despesas Diretas %", gastosSGVLabel:"G&A %",
-    folioCot:"Numeração de Cotações", monedaTC:"Moeda e Taxa de Câmbio",
-    idiomaSistema:"Idioma do sistema e PDF", apariencia:"Aparência",
-    impuestoVentas:"Impostos sobre Vendas",
-    // Pagamento
-    pagoPorDefecto:"50% antecipado / saldo na entrega",
-    // Onboarding
+    margenLabel:"Margem de Lucro %",
+    folioCot:"Numeração de Cotações", prefijoFolio:"Prefixo",
+    siguienteNum:"Próximo número", autoIncrementa:"Incrementa automaticamente",
+    monedaTC:"Moeda e Taxa de Câmbio", idiomaSistema:"Idioma do sistema e PDF",
+    apariencia:"Aparência", tamTexto:"Tamanho do texto",
+    impuestoVentas:"Impostos sobre Vendas", nombreImpuesto:"Nome do imposto",
+    pctImpuesto:"Percentual (%)", mostrarPDF:"Mostrar no PDF",
+    siIncluir:"Sim, Incluir", noTasaCero:"Não (taxa zero / isento)",
+    temaColor:"Tema de cor", fuente:"Fonte", plantillaPDF:"Modelo de PDF",
+    cerrarSesion:"Sair", eliminar:"Excluir",
+    guardarBtn:"Salvar", cancelar:"Cancelar",
+    catalogoMat:"Catálogo de Materiais", catalogoProc:"Catálogo de Processos",
+    processoMaq:"Processo / Máquina", tarifaHrCol:"Taxa/hr",
+    nombreMat:"Nome do material", nombreProc:"Nome do processo",
+    precioKg:"Preço por kg", tarifaHr:"Taxa por hora",
+    agregarBtn:"+ Adicionar", vistaPrev:"Visualizar",
     bienvenido:"Bem-vindo ao CotizadorPRO",
     paso1Tit:"Configure sua oficina", paso2Tit:"Adicione seu primeiro cliente",
     paso3Tit:"Crie sua primeira cotação",
+    pagoPorDefecto:"50% antecipado / saldo na entrega",
   },
 };
 
+// Función global para obtener traducciones — accesible desde cualquier componente sin props
+function useT() {
+  try {
+    const lang = localStorage.getItem("cot_lang") || "es";
+    return TRADUCCIONES[lang] || TRADUCCIONES.es;
+  } catch {
+    return TRADUCCIONES.es;
+  }
+}
 
 // ─── SUPABASE ─────────────────────────────────────────────────────────────────
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
@@ -537,7 +559,9 @@ export default function CotizadorProEstandar() {
 
   const t        = TEMAS[datos.tema] || TEMAS.oscuro;
   const tamFuente = datos.tamTexto === "chico" ? 13 : datos.tamTexto === "grande" ? 16 : 14;
-  const tx        = T18N[idiomaActivo] || T18N.es;
+  // tx se obtiene via useT() en cada componente, pero necesitamos forzar re-render
+  // cuando cambia idiomaActivo — usamos un key prop implícito
+  const tx = TRADUCCIONES[idiomaActivo] || TRADUCCIONES.es;
 
   // ── Edición completa desde Mis Cotizaciones ──────────────────────────────────
   function handleEditarCompleto(cot: any, modo: "mismo"|"nuevo") {
@@ -609,12 +633,12 @@ export default function CotizadorProEstandar() {
 
       {/* CONTENIDO */}
       <main style={{ maxWidth:1100, margin:"0 auto", padding:"24px 16px" }}>
-        {pestana==="cotizar"    && <PestanaCotizar    datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} tx={tx} cotEnEdicion={cotEnEdicion} onLimpiarEdicion={()=>setCotEnEdicion(null)} mostrarNotif={mostrarNotif} />}
-        {pestana==="lista"      && <PestanaLista      datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} tx={tx} onEditarCompleto={handleEditarCompleto} mostrarNotif={mostrarNotif} setPestana={setPestana} />}
-        {pestana==="materiales" && <PestanaMateriales datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} tx={tx} />}
-        {pestana==="procesos"   && <PestanaProcesos   datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} tx={tx} />}
-        {pestana==="clientes"   && <PestanaClientes   datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} tx={tx} mostrarNotif={mostrarNotif} />}
-        {pestana==="config"     && <PestanaConfig     datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} tx={tx} />}
+        {pestana==="cotizar"    && <PestanaCotizar    key={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} cotEnEdicion={cotEnEdicion} onLimpiarEdicion={()=>setCotEnEdicion(null)} mostrarNotif={mostrarNotif} />}
+        {pestana==="lista"      && <PestanaLista      key={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} onEditarCompleto={handleEditarCompleto} mostrarNotif={mostrarNotif} setPestana={setPestana} />}
+        {pestana==="materiales" && <PestanaMateriales key={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} />}
+        {pestana==="procesos"   && <PestanaProcesos   key={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} />}
+        {pestana==="clientes"   && <PestanaClientes   key={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} mostrarNotif={mostrarNotif} />}
+        {pestana==="config"     && <PestanaConfig     key={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} />}
       </main>
     </div>
   );
@@ -623,7 +647,8 @@ export default function CotizadorProEstandar() {
 // ═══════════════════════════════════════════════════════════════════════════════
 // PESTAÑA: NUEVA COTIZACIÓN
 // ═══════════════════════════════════════════════════════════════════════════════
-function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, tx, cotEnEdicion, onLimpiarEdicion, mostrarNotif }: any) {
+function PestanaCotizar({
+  const tx = useT(); datos, actualizarDatos, t, tamFuente, tx, cotEnEdicion, onLimpiarEdicion, mostrarNotif }: any) {
   const cot = cotEnEdicion?.cot;
   const modoEdicion = cotEnEdicion?.modo; // "mismo" | "nuevo"
 
@@ -1024,7 +1049,8 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, tx, cotEnEdicion
 // ═══════════════════════════════════════════════════════════════════════════════
 // PESTAÑA: MIS COTIZACIONES
 // ═══════════════════════════════════════════════════════════════════════════════
-function PestanaLista({ datos, actualizarDatos, t, tamFuente, tx, onEditarCompleto, mostrarNotif, setPestana }: any) {
+function PestanaLista({
+  const tx = useT(); datos, actualizarDatos, t, tamFuente, tx, onEditarCompleto, mostrarNotif, setPestana }: any) {
   const [showVista,      setShowVista]      = useState<any>(null);
   const [modalEditar,    setModalEditar]    = useState<any>(null); // cotización para modal de opción
   const cots = datos.cotizaciones || [];
@@ -1037,7 +1063,7 @@ function PestanaLista({ datos, actualizarDatos, t, tamFuente, tx, onEditarComple
 
   if (showVista) return (
     <VistaPDF
-      datos={datos} tx={tx} lineasCalc={showVista.lineas} res={calcular(
+      datos={datos} lineasCalc={showVista.lineas} res={calcular(
         showVista.lineas.reduce((s: number, l: any) => s+l.labor, 0),
         showVista.lineas.reduce((s: number, l: any) => s+(l.costoMat||l.subtotal-l.labor||0), 0),
         showVista.extras||0,
@@ -1211,7 +1237,8 @@ function PestanaLista({ datos, actualizarDatos, t, tamFuente, tx, onEditarComple
 // ═══════════════════════════════════════════════════════════════════════════════
 // VISTA PDF / CLIENTE
 // ═══════════════════════════════════════════════════════════════════════════════
-function VistaPDF({ datos, lineasCalc, res, extras, folio, descripcion, nota, cliente, cond, moneda, tc, idioma, t, tx, onCerrar }: any) {
+function VistaPDF({
+  const tx = useT(); datos, lineasCalc, res, extras, folio, descripcion, nota, cliente, cond, moneda, tc, idioma, t, tx, onCerrar }: any) {
   const txPDF   = T18N[idioma] || T18N.es;
   const fmt2    = (n: number) => fmtMoneda(convertirMoneda(n, moneda, tc), moneda);
   const mLabel  = moneda !== "MXN" ? moneda : "MXN";
@@ -1386,7 +1413,8 @@ function VistaPDF({ datos, lineasCalc, res, extras, folio, descripcion, nota, cl
 // ═══════════════════════════════════════════════════════════════════════════════
 // PESTAÑA: CATÁLOGO DE CLIENTES
 // ═══════════════════════════════════════════════════════════════════════════════
-function PestanaClientes({ datos, actualizarDatos, t, tamFuente, tx, mostrarNotif }: any) {
+function PestanaClientes({
+  const tx = useT(); datos, actualizarDatos, t, tamFuente, tx, mostrarNotif }: any) {
   const [nuevo, setNuevo]     = useState({ empresa:"", nombre:"", email:"", tel:"", ciudad:"", rfc:"", razonSocial:"", direccionFiscal:"" });
   const [editId, setEditId]   = useState<number|null>(null);
   const [busca, setBusca]     = useState("");
@@ -1449,7 +1477,7 @@ function PestanaClientes({ datos, actualizarDatos, t, tamFuente, tx, mostrarNoti
           : clientesFiltrados.map((c: any) => (
               <div key={c.id} style={{ padding:"14px 0", borderBottom:`1px solid ${t.border}` }}>
                 {editId === c.id ? (
-                  <EditarCliente c={c} t={t} tamFuente={tamFuente} inp={inp} label={label} tx={tx}
+                  <EditarCliente c={c} t={t} tamFuente={tamFuente} inp={inp} label={label}
                     onGuardar={(d: any)=>guardarEdicion(c.id,d)} onCancelar={()=>setEditId(null)}/>
                 ) : (
                   <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
@@ -1474,7 +1502,8 @@ function PestanaClientes({ datos, actualizarDatos, t, tamFuente, tx, mostrarNoti
   );
 }
 
-function EditarCliente({ c, t, tamFuente, inp, label, tx, onGuardar, onCancelar }: any) {
+function EditarCliente({
+  const tx = useT(); c, t, tamFuente, inp, label, tx, onGuardar, onCancelar }: any) {
   const [d, setD] = useState({ empresa:c.empresa||"", nombre:c.nombre||"", email:c.email||"", tel:c.tel||"", ciudad:c.ciudad||"", rfc:c.rfc||"", razonSocial:c.razonSocial||"", direccionFiscal:c.direccionFiscal||"" });
   return (
     <div>
@@ -1499,7 +1528,8 @@ function EditarCliente({ c, t, tamFuente, inp, label, tx, onGuardar, onCancelar 
 // ═══════════════════════════════════════════════════════════════════════════════
 // PESTAÑA: MATERIALES
 // ═══════════════════════════════════════════════════════════════════════════════
-function PestanaMateriales({ datos, actualizarDatos, t, tamFuente, tx }: any) {
+function PestanaMateriales({
+  const tx = useT(); datos, actualizarDatos, t, tamFuente, tx }: any) {
   const [nuevo, setNuevo] = useState({ nombre:"", precio:"" });
   const inp = { background:t.input, border:`1px solid ${t.border}`, borderRadius:8, padding:"9px 12px", color:t.text, fontSize:tamFuente, width:"100%", outline:"none" };
 
@@ -1537,7 +1567,8 @@ function PestanaMateriales({ datos, actualizarDatos, t, tamFuente, tx }: any) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // PESTAÑA: PROCESOS
 // ═══════════════════════════════════════════════════════════════════════════════
-function PestanaProcesos({ datos, actualizarDatos, t, tamFuente, tx }: any) {
+function PestanaProcesos({
+  const tx = useT(); datos, actualizarDatos, t, tamFuente, tx }: any) {
   const [nuevo, setNuevo] = useState({ nombre:"", tarifa:"" });
   const inp = { background:t.input, border:`1px solid ${t.border}`, borderRadius:8, padding:"9px 12px", color:t.text, fontSize:tamFuente, width:"100%", outline:"none" };
 
@@ -1609,7 +1640,8 @@ function ActualizarTC({ t, tamFuente, tcActual, onActualizar }: any) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // PESTAÑA: CONFIGURACIÓN
 // ═══════════════════════════════════════════════════════════════════════════════
-function PestanaConfig({ datos, actualizarDatos, t, tamFuente, tx }: any) {
+function PestanaConfig({
+  const tx = useT(); datos, actualizarDatos, t, tamFuente, tx }: any) {
   const inp   = { background:t.input, border:`1px solid ${t.border}`, borderRadius:8, padding:"9px 12px", color:t.text, fontSize:tamFuente, width:"100%", outline:"none" };
   const label = { fontSize:tamFuente-1, color:t.textSub, marginBottom:6, display:"block" };
   const card  = { background:t.card, borderRadius:12, border:`1px solid ${t.border}`, padding:24, marginBottom:20 };
