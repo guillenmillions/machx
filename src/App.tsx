@@ -750,7 +750,7 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, tx, cotEnEdicion
 
   if (showVistaCliente) return (
     <VistaPDF
-      datos={datos} lineasCalc={lineasCalc} res={res} extras={Number(extras)||0}
+      datos={datos} lineasCalc={lineasCalc} res={res} extras={Number(extras)||0} tx={tx}
       folio={folio} descripcion={descripcion} nota={nota}
       cliente={{ nombre:clienteNombre, empresa:clienteEmpresa, email:clienteEmail, tel:clienteTel, ciudad:clienteCiudad, rfc:clienteRFC, razonSocial:clienteRazon, direccionFiscal:clienteDirFiscal }}
       cond={{ entrega, pago, validez }}
@@ -1037,7 +1037,7 @@ function PestanaLista({ datos, actualizarDatos, t, tamFuente, tx, onEditarComple
 
   if (showVista) return (
     <VistaPDF
-      datos={datos} lineasCalc={showVista.lineas} res={calcular(
+      datos={datos} tx={tx} lineasCalc={showVista.lineas} res={calcular(
         showVista.lineas.reduce((s: number, l: any) => s+l.labor, 0),
         showVista.lineas.reduce((s: number, l: any) => s+(l.costoMat||l.subtotal-l.labor||0), 0),
         showVista.extras||0,
@@ -1211,7 +1211,7 @@ function PestanaLista({ datos, actualizarDatos, t, tamFuente, tx, onEditarComple
 // ═══════════════════════════════════════════════════════════════════════════════
 // VISTA PDF / CLIENTE
 // ═══════════════════════════════════════════════════════════════════════════════
-function VistaPDF({ datos, lineasCalc, res, extras, folio, descripcion, nota, cliente, cond, moneda, tc, idioma, t, onCerrar }: any) {
+function VistaPDF({ datos, lineasCalc, res, extras, folio, descripcion, nota, cliente, cond, moneda, tc, idioma, t, tx, onCerrar }: any) {
   const txPDF   = T18N[idioma] || T18N.es;
   const fmt2    = (n: number) => fmtMoneda(convertirMoneda(n, moneda, tc), moneda);
   const mLabel  = moneda !== "MXN" ? moneda : "MXN";
