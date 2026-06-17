@@ -1449,7 +1449,7 @@ function PestanaClientes({ datos, actualizarDatos, t, tamFuente, tx, mostrarNoti
           : clientesFiltrados.map((c: any) => (
               <div key={c.id} style={{ padding:"14px 0", borderBottom:`1px solid ${t.border}` }}>
                 {editId === c.id ? (
-                  <EditarCliente c={c} t={t} tamFuente={tamFuente} inp={inp} label={label}
+                  <EditarCliente c={c} t={t} tamFuente={tamFuente} inp={inp} label={label} tx={tx}
                     onGuardar={(d: any)=>guardarEdicion(c.id,d)} onCancelar={()=>setEditId(null)}/>
                 ) : (
                   <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
@@ -1474,7 +1474,7 @@ function PestanaClientes({ datos, actualizarDatos, t, tamFuente, tx, mostrarNoti
   );
 }
 
-function EditarCliente({ c, t, tamFuente, inp, label, onGuardar, onCancelar }: any) {
+function EditarCliente({ c, t, tamFuente, inp, label, tx, onGuardar, onCancelar }: any) {
   const [d, setD] = useState({ empresa:c.empresa||"", nombre:c.nombre||"", email:c.email||"", tel:c.tel||"", ciudad:c.ciudad||"", rfc:c.rfc||"", razonSocial:c.razonSocial||"", direccionFiscal:c.direccionFiscal||"" });
   return (
     <div>
