@@ -1,72 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@supabase/supabase-js";
-
-const TEMAS: Record<string, Record<string, string>> = {
-  claro: {
-    // Claro Profesional — diseño corporativo, optimizado para impresión
-    bg:"#f0f2f5",        // fondo general gris muy suave
-    card:"#ffffff",       // tarjetas blancas puras
-    border:"#dde1e9",    // bordes sutiles gris azulado
-    text:"#1a1f2e",      // texto principal casi negro, máximo contraste
-    textSub:"#5a6278",   // texto secundario gris medio legible
-    accent:"#1a56db",    // azul corporativo sólido (no saturado)
-    accentHover:"#1344b8",
-    success:"#0e7a3f",   // verde oscuro legible
-    danger:"#c41e1e",    // rojo legible
-    input:"#f7f8fa",     // inputs gris muy claro
-    header:"#ffffff",    // header blanco con sombra
-    acento:"#0e7a3f",
-    btnOrange:"#d4500a", // naranja oscuro (imprime bien)
-  },
-  oscuro: {
-    // Oscuro Industrial — para trabajo nocturno o talleres con poca luz
-    bg:"#0f1117", card:"#1a1d27", border:"#2a2d3e",
-    text:"#e8eaf0", textSub:"#8b8fa8", accent:"#4f6ef7",
-    accentHover:"#3d5ce0", success:"#22c55e", danger:"#ef4444",
-    input:"#12151f", header:"#13161f",
-    acento:"#1B9E75", btnOrange:"#f97316",
-  },
-  marino: {
-    // Azul Marino — intermedio, buena legibilidad en monitores
-    bg:"#0a1628", card:"#0f2040", border:"#1a3a6b",
-    text:"#cdd8f0", textSub:"#7a96c4", accent:"#38bdf8",
-    accentHover:"#0ea5e9", success:"#34d399", danger:"#f87171",
-    input:"#0d1c36", header:"#0d1c36",
-    acento:"#38bdf8", btnOrange:"#38bdf8",
-  },
-};
-const T18N: Record<string, Record<string, string>> = {
-  es: {
-    cotizacion:"COTIZACIÓN", cliente:"Cliente", condiciones:"Condiciones",
-    entrega:"Entrega", pago:"Pago", vigencia:"Vigencia",
-    descripcion:"Descripción de Servicios", cant:"Cant.", unidad:"Unidad",
-    pUnitario:"P. Unitario", total:"Total", subtotal:"Subtotal",
-    notas:"Notas", elaboro:"Elaboró", autorizo:"Autorizó / Cliente",
-    dias:"días", porConfirmar:"Por confirmar", attn:"Attn:", plano:"Plano:",
-    guardar:"Guardar Cotización", nuevaCot:"Nueva Cotización",
-    misCots:"Mis Cotizaciones", materiales:"Materiales",
-    procesos:"Procesos", configuracion:"Configuración",
-  },
-  en: {
-    cotizacion:"QUOTATION", cliente:"Bill To", condiciones:"Terms",
-    entrega:"Delivery", pago:"Payment", vigencia:"Valid for",
-    descripcion:"Services Description", cant:"Qty.", unidad:"Unit",
-    pUnitario:"Unit Price", total:"Total", subtotal:"Subtotal",
-    notas:"Notes", elaboro:"Prepared by", autorizo:"Authorized / Client",
-    dias:"days", porConfirmar:"To be confirmed", attn:"Attn:", plano:"Dwg:",
-    guardar:"Save Quote", nuevaCot:"New Quote",
-    misCots:"My Quotes", materiales:"Materials",
-    procesos:"Processes", configuracion:"Settings",
-  },
-};
+import { TEMAS, T18N, MONEDAS } from "./i18n";
 
 // ─── SUPABASE ─────────────────────────────────────────────────────────────────
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// ─── MONEDAS ──────────────────────────────────────────────────────────────────
-const MONEDAS: Record<string, { id: string; label: string; simbolo: string; locale: string; flag: string }> = {
+// ─── MONEDAS ──────────────────────────────────────────────────────────────────> = {
   MXN: { id:"MXN", label:"Peso Mexicano",     simbolo:"$",  locale:"es-MX", flag:"🇲🇽" },
   USD: { id:"USD", label:"Dólar Americano",   simbolo:"$",  locale:"en-US", flag:"🇺🇸" },
   EUR: { id:"EUR", label:"Euro",              simbolo:"€",  locale:"de-DE", flag:"🇪🇺" },
@@ -80,24 +21,6 @@ const MONEDAS: Record<string, { id: string; label: string; simbolo: string; loca
 };
 
 // ─── TEXTOS BILINGÜE ──────────────────────────────────────────────────────────
-
-  pt: {
-    cotizacion:"COTAÇÃO", cliente:"Cliente", condiciones:"Condições",
-    entrega:"Entrega", pago:"Pagamento", vigencia:"Válido por",
-    descripcion:"Descrição dos Serviços", cant:"Qtd.", unidad:"Unidade",
-    pUnitario:"P. Unitário", total:"Total", subtotal:"Subtotal",
-    notas:"Observações", elaboro:"Elaborado por", autorizo:"Autorizado / Cliente",
-    dias:"dias", porConfirmar:"A confirmar", attn:"A/C:", plano:"Des.:",
-    guardar:"Salvar Cotação", nuevaCot:"Nova Cotação",
-    misCots:"Minhas Cotações", materiales:"Materiais",
-    procesos:"Processos", configuracion:"Configurações",
-    pagoPorDefecto:"50% antecipado / saldo na entrega",
-    borrador:"Rascunho", enviada:"Enviada", aprobada:"Aprovada",
-    rechazada:"Rejeitada", enProceso:"Em Produção", entregada:"Entregue",
-    impuesto:"ICMS/ISS", sinImpuesto:"Preço sem impostos",
-    elaboroFirma:"Elaborado por", autorizoFirma:"Autorizado / Cliente",
-    flete:"Frete / Serviços Adicionais",
-  },
 // ─── FÓRMULA DE CÁLCULO (no modificar) ───────────────────────────────────────
 function calcular(labor: number, material: number, extras: number, pctGD: number, pctSGV: number, pctMargen: number) {
   const costoDirecto   = labor + material + extras;
@@ -154,7 +77,6 @@ async function fetchTipoCambio(): Promise<number> {
 }
 
 
-
 // ─── DATOS INICIALES ──────────────────────────────────────────────────────────
 const DATOS_INICIALES = {
   taller: {
@@ -196,12 +118,12 @@ function PantallaLogin() {
   });
   const t = TEMAS.oscuro;
   const LX: Record<string,any> = {
-    es:{sub:"Estándar — Sistema de Cotización Industrial",noAcc:"¿No tienes cuenta?",link:"Adquiere tu licencia aquí →",tab1:"Iniciar sesión",tab2:"Registrarse",em:"Correo electrónico",pw:"Contraseña (mínimo 6 caracteres)",b1:"Entrar",b2:"Crear cuenta",b3:"Enviar enlace",proc:"Procesando...",fgt:"¿Olvidaste tu contraseña?",back:"← Volver",rst:"Ingresa tu correo para recibir el enlace de recuperación.",ep:"Correo o contraseña incorrectos.",okReg:"¡Cuenta creada! Revisa tu correo para confirmar.",okRst:"Te enviamos un enlace para restablecer tu contraseña."},
-    en:{sub:"Standard — Industrial Quoting System",noAcc:"Don't have an account?",link:"Get your license here →",tab1:"Sign in",tab2:"Sign up",em:"Email address",pw:"Password (minimum 6 characters)",b1:"Sign in",b2:"Create account",b3:"Send link",proc:"Processing...",fgt:"Forgot your password?",back:"← Back",rst:"Enter your email to receive a password reset link.",ep:"Incorrect email or password.",okReg:"Account created! Check your email to confirm.",okRst:"We sent you a link to reset your password."},
-    pt:{sub:"Padrão — Sistema de Cotação Industrial",noAcc:"Não tem uma conta?",link:"Adquira sua licença aqui →",tab1:"Entrar",tab2:"Cadastrar",em:"E-mail",pw:"Senha (mínimo 6 caracteres)",b1:"Entrar",b2:"Criar conta",b3:"Enviar link",proc:"Processando...",fgt:"Esqueceu sua senha?",back:"← Voltar",rst:"Digite seu e-mail para receber o link de recuperação.",ep:"E-mail ou senha incorretos.",okReg:"Conta criada! Verifique seu e-mail para confirmar.",okRst:"Enviamos um link para redefinir sua senha."},
+    es:{sub:"Estándar — Sistema de Cotización Industrial",noAcc:"¿No tienes cuenta?",link:"Adquiere tu licencia aquí →",tab1:"Iniciar sesión",tab2:"Registrarse",em:"Correo electrónico",pw:"Contraseña (mínimo 6 caracteres)",b1:"Entrar",b2:"Crear cuenta",b3:"Enviar enlace",proc:"Procesando...",fgt:"¿Olvidaste tu contraseña?",back:"← Volver",rst:"Ingresa tu correo para recibir el enlace.",ep:"Correo o contraseña incorrectos.",okReg:"¡Cuenta creada! Revisa tu correo.",okRst:"Te enviamos el enlace."},
+    en:{sub:"Standard — Industrial Quoting System",noAcc:"Don't have an account?",link:"Get your license here →",tab1:"Sign in",tab2:"Sign up",em:"Email address",pw:"Password (min. 6 characters)",b1:"Sign in",b2:"Create account",b3:"Send link",proc:"Processing...",fgt:"Forgot your password?",back:"← Back",rst:"Enter your email to receive a reset link.",ep:"Incorrect email or password.",okReg:"Account created! Check your email.",okRst:"We sent you a reset link."},
+    pt:{sub:"Padrão — Sistema de Cotação Industrial",noAcc:"Não tem uma conta?",link:"Adquira sua licença aqui →",tab1:"Entrar",tab2:"Cadastrar",em:"E-mail",pw:"Senha (mín. 6 caracteres)",b1:"Entrar",b2:"Criar conta",b3:"Enviar link",proc:"Processando...",fgt:"Esqueceu sua senha?",back:"← Voltar",rst:"Digite seu e-mail para receber o link.",ep:"E-mail ou senha incorretos.",okReg:"Conta criada! Verifique seu e-mail.",okRst:"Enviamos o link para seu e-mail."},
   };
   const lx = LX[lang] || LX.es;
-  function changeLang(l:"es"|"en"|"pt"){setLang(l);setMsg(null);try{localStorage.setItem("cot_lang",l);}catch{}}
+  function setL(l:"es"|"en"|"pt"){setLang(l);setMsg(null);try{localStorage.setItem("cot_lang",l);}catch{}}
 
   async function handleLogin(e: any) {
     e.preventDefault(); setCarg(true); setMsg(null);
@@ -232,7 +154,7 @@ function PantallaLogin() {
       <div style={{ width:420, background:t.card, borderRadius:16, border:`1px solid ${t.border}`, padding:40 }}>
         <div style={{ display:"flex", justifyContent:"flex-end", marginBottom:12, gap:6 }}>
           {(["es","en","pt"] as const).map(l=>(
-            <button key={l} onClick={()=>changeLang(l)} style={{ padding:"3px 10px", borderRadius:20, border:`1px solid ${lang===l?t.accent:t.border}`, background:lang===l?t.accent:"transparent", color:lang===l?"#fff":t.textSub, cursor:"pointer", fontSize:12, fontWeight:600 }}>
+            <button key={l} onClick={()=>setL(l)} style={{ padding:"3px 10px", borderRadius:20, border:`1px solid ${lang===l?t.accent:t.border}`, background:lang===l?t.accent:"transparent", color:lang===l?"#fff":t.textSub, cursor:"pointer", fontSize:12, fontWeight:600 }}>
               {l==="es"?"🇲🇽 ES":l==="en"?"🇺🇸 EN":"🇧🇷 PT"}
             </button>
           ))}
@@ -246,7 +168,7 @@ function PantallaLogin() {
             <a href="https://hotmart.com/es/marketplace/productos/cotizadorpro-estandar-sistema-de-cotizacion-para-talleres-de-maquinado/G106237955N" target="_blank" rel="noopener noreferrer" style={{ color:"#60a5fa", textDecoration:"none", fontWeight:600 }}>{lx.link}</a>
           </div>
         </div>
-        {modo!=="reset" && (
+        {modo!=="reset"&&(
           <div style={{ display:"flex", marginBottom:28, background:t.input, borderRadius:8, padding:4 }}>
             {(["login","registro"] as const).map(m=>(
               <button key={m} onClick={()=>{setModo(m);setMsg(null);}} style={{ flex:1, padding:"9px 0", border:"none", borderRadius:6, cursor:"pointer", background:modo===m?t.accent:"transparent", color:modo===m?"#fff":t.textSub, fontWeight:600, fontSize:14 }}>
@@ -674,6 +596,7 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, tx, cotEnEdicion
             <select style={inp} value={idioma} onChange={e=>setIdioma(e.target.value)}>
               <option value="es">🇲🇽 Español</option>
               <option value="en">🇺🇸 English</option>
+              <option value="pt">🇧🇷 Português</option>
             </select>
           </div>
           {moneda !== "MXN" && (
@@ -1564,9 +1487,10 @@ function PestanaConfig({ datos, actualizarDatos, t, tamFuente, tx }: any) {
           </div>
           <div>
             <label style={label}>Idioma PDF por defecto</label>
-            <select style={inp} value={datos.config.idioma||"es"} onChange={e=>{ const l=e.target.value; setIdiomaActivo(l); try{localStorage.setItem('cot_lang',l);}catch{} actualizarDatos({ config:{...datos.config,idioma:l} }); }}>
+            <select style={inp} value={datos.config.idioma||"es"} onChange={e=>{ const l=e.target.value; setIdiomaActivo(l); try{localStorage.setItem("cot_lang",l);}catch{} actualizarDatos({ config:{...datos.config,idioma:l} }); }}>
               <option value="es">🇲🇽 Español</option>
               <option value="en">🇺🇸 English</option>
+              <option value="pt">🇧🇷 Português</option>
             </select>
           </div>
         </div>
