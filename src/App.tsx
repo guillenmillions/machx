@@ -7,7 +7,20 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// ─── FÓRMULA DE CÁLCULO ─ continúa abajo
+// ─── MONEDAS ──────────────────────────────────────────────────────────────────> = {
+  MXN: { id:"MXN", label:"Peso Mexicano",     simbolo:"$",  locale:"es-MX", flag:"🇲🇽" },
+  USD: { id:"USD", label:"Dólar Americano",   simbolo:"$",  locale:"en-US", flag:"🇺🇸" },
+  EUR: { id:"EUR", label:"Euro",              simbolo:"€",  locale:"de-DE", flag:"🇪🇺" },
+  CAD: { id:"CAD", label:"Dólar Canadiense",  simbolo:"$",  locale:"en-CA", flag:"🇨🇦" },
+  COP: { id:"COP", label:"Peso Colombiano",   simbolo:"$",  locale:"es-CO", flag:"🇨🇴" },
+  ARS: { id:"ARS", label:"Peso Argentino",    simbolo:"$",  locale:"es-AR", flag:"🇦🇷" },
+  BRL: { id:"BRL", label:"Real Brasileño",    simbolo:"R$", locale:"pt-BR", flag:"🇧🇷" },
+  CLP: { id:"CLP", label:"Peso Chileno",      simbolo:"$",  locale:"es-CL", flag:"🇨🇱" },
+  PEN: { id:"PEN", label:"Sol Peruano",       simbolo:"S/", locale:"es-PE", flag:"🇵🇪" },
+  GBP: { id:"GBP", label:"Libra Esterlina",   simbolo:"£",  locale:"en-GB", flag:"🇬🇧" },
+};
+
+// ─── TEXTOS BILINGÜE ──────────────────────────────────────────────────────────
 // ─── FÓRMULA DE CÁLCULO (no modificar) ───────────────────────────────────────
 function calcular(labor: number, material: number, extras: number, pctGD: number, pctSGV: number, pctMargen: number) {
   const costoDirecto   = labor + material + extras;
@@ -337,12 +350,12 @@ export default function CotizadorProEstandar() {
 
       {/* CONTENIDO */}
       <main style={{ maxWidth:1100, margin:"0 auto", padding:"24px 16px" }}>
-        {pestana==="cotizar"    && <PestanaCotizar    datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} tx={tx} cotEnEdicion={cotEnEdicion} onLimpiarEdicion={()=>setCotEnEdicion(null)} mostrarNotif={mostrarNotif} />}
-        {pestana==="lista"      && <PestanaLista      datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} tx={tx} onEditarCompleto={handleEditarCompleto} mostrarNotif={mostrarNotif} setPestana={setPestana} />}
-        {pestana==="materiales" && <PestanaMateriales datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} />}
-        {pestana==="procesos"   && <PestanaProcesos   datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} />}
-        {pestana==="clientes"   && <PestanaClientes   datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} mostrarNotif={mostrarNotif} />}
-        {pestana==="config"     && <PestanaConfig     datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} tx={tx} />}
+        {pestana==="cotizar"    && <PestanaCotizar    key={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} tx={tx} cotEnEdicion={cotEnEdicion} onLimpiarEdicion={()=>setCotEnEdicion(null)} mostrarNotif={mostrarNotif} />}
+        {pestana==="lista"      && <PestanaLista      key={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} tx={tx} onEditarCompleto={handleEditarCompleto} mostrarNotif={mostrarNotif} setPestana={setPestana} />}
+        {pestana==="materiales" && <PestanaMateriales key={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} tx={tx} />}
+        {pestana==="procesos"   && <PestanaProcesos   key={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} tx={tx} />}
+        {pestana==="clientes"   && <PestanaClientes   key={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} tx={tx} mostrarNotif={mostrarNotif} />}
+        {pestana==="config"     && <PestanaConfig     key={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} tx={tx} setIdiomaActivo={setIdiomaActivo} />}
       </main>
     </div>
   );
@@ -1115,7 +1128,7 @@ function VistaPDF({ datos, lineasCalc, res, extras, folio, descripcion, nota, cl
 // ═══════════════════════════════════════════════════════════════════════════════
 // PESTAÑA: CATÁLOGO DE CLIENTES
 // ═══════════════════════════════════════════════════════════════════════════════
-function PestanaClientes({ datos, actualizarDatos, t, tamFuente, mostrarNotif }: any) {
+function PestanaClientes({ datos, actualizarDatos, t, tamFuente, tx, mostrarNotif }: any) {
   const [nuevo, setNuevo]     = useState({ empresa:"", nombre:"", email:"", tel:"", ciudad:"", rfc:"", razonSocial:"", direccionFiscal:"" });
   const [editId, setEditId]   = useState<number|null>(null);
   const [busca, setBusca]     = useState("");
@@ -1178,7 +1191,7 @@ function PestanaClientes({ datos, actualizarDatos, t, tamFuente, mostrarNotif }:
           : clientesFiltrados.map((c: any) => (
               <div key={c.id} style={{ padding:"14px 0", borderBottom:`1px solid ${t.border}` }}>
                 {editId === c.id ? (
-                  <EditarCliente c={c} t={t} tamFuente={tamFuente} inp={inp} label={label}
+                  <EditarCliente c={c} t={t} tamFuente={tamFuente} inp={inp} label={label} tx={tx}
                     onGuardar={(d: any)=>guardarEdicion(c.id,d)} onCancelar={()=>setEditId(null)}/>
                 ) : (
                   <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
@@ -1203,7 +1216,7 @@ function PestanaClientes({ datos, actualizarDatos, t, tamFuente, mostrarNotif }:
   );
 }
 
-function EditarCliente({ c, t, tamFuente, inp, label, onGuardar, onCancelar }: any) {
+function EditarCliente({ c, t, tamFuente, inp, label, tx, onGuardar, onCancelar }: any) {
   const [d, setD] = useState({ empresa:c.empresa||"", nombre:c.nombre||"", email:c.email||"", tel:c.tel||"", ciudad:c.ciudad||"", rfc:c.rfc||"", razonSocial:c.razonSocial||"", direccionFiscal:c.direccionFiscal||"" });
   return (
     <div>
@@ -1228,7 +1241,7 @@ function EditarCliente({ c, t, tamFuente, inp, label, onGuardar, onCancelar }: a
 // ═══════════════════════════════════════════════════════════════════════════════
 // PESTAÑA: MATERIALES
 // ═══════════════════════════════════════════════════════════════════════════════
-function PestanaMateriales({ datos, actualizarDatos, t, tamFuente }: any) {
+function PestanaMateriales({ datos, actualizarDatos, t, tamFuente, tx }: any) {
   const [nuevo, setNuevo] = useState({ nombre:"", precio:"" });
   const inp = { background:t.input, border:`1px solid ${t.border}`, borderRadius:8, padding:"9px 12px", color:t.text, fontSize:tamFuente, width:"100%", outline:"none" };
 
@@ -1266,7 +1279,7 @@ function PestanaMateriales({ datos, actualizarDatos, t, tamFuente }: any) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // PESTAÑA: PROCESOS
 // ═══════════════════════════════════════════════════════════════════════════════
-function PestanaProcesos({ datos, actualizarDatos, t, tamFuente }: any) {
+function PestanaProcesos({ datos, actualizarDatos, t, tamFuente, tx }: any) {
   const [nuevo, setNuevo] = useState({ nombre:"", tarifa:"" });
   const inp = { background:t.input, border:`1px solid ${t.border}`, borderRadius:8, padding:"9px 12px", color:t.text, fontSize:tamFuente, width:"100%", outline:"none" };
 
@@ -1338,7 +1351,7 @@ function ActualizarTC({ t, tamFuente, tcActual, onActualizar }: any) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // PESTAÑA: CONFIGURACIÓN
 // ═══════════════════════════════════════════════════════════════════════════════
-function PestanaConfig({ datos, actualizarDatos, t, tamFuente, tx }: any) {
+function PestanaConfig({ datos, actualizarDatos, t, tamFuente, tx, setIdiomaActivo }: any) {
   const inp   = { background:t.input, border:`1px solid ${t.border}`, borderRadius:8, padding:"9px 12px", color:t.text, fontSize:tamFuente, width:"100%", outline:"none" };
   const label = { fontSize:tamFuente-1, color:t.textSub, marginBottom:6, display:"block" };
   const card  = { background:t.card, borderRadius:12, border:`1px solid ${t.border}`, padding:24, marginBottom:20 };
