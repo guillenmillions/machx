@@ -116,7 +116,9 @@ function PantallaLogin() {
   const [lang, setLang]     = useState<"es"|"en"|"pt">(() => {
     try { return (localStorage.getItem("cot_lang") as any) || "es"; } catch { return "es"; }
   });
-  const t = TEMAS.oscuro;
+  // Colores hardcodeados — sin dependencia de módulos importados (evita TDZ en Vite)
+  const t = { card:"#1a1d27", border:"#2a2d3e", text:"#e8eaf0", textSub:"#8b8fa8",
+    accent:"#4f6ef7", success:"#22c55e", danger:"#ef4444", input:"#12151f" };
   const LX: Record<string,any> = {
     es:{sub:"Estándar — Sistema de Cotización Industrial",noAcc:"¿No tienes cuenta?",link:"Adquiere tu licencia aquí →",tab1:"Iniciar sesión",tab2:"Registrarse",em:"Correo electrónico",pw:"Contraseña (mínimo 6 caracteres)",b1:"Entrar",b2:"Crear cuenta",b3:"Enviar enlace",proc:"Procesando...",fgt:"¿Olvidaste tu contraseña?",back:"← Volver",rst:"Ingresa tu correo para recibir el enlace.",ep:"Correo o contraseña incorrectos.",okReg:"¡Cuenta creada! Revisa tu correo.",okRst:"Te enviamos el enlace."},
     en:{sub:"Standard — Industrial Quoting System",noAcc:"Don't have an account?",link:"Get your license here →",tab1:"Sign in",tab2:"Sign up",em:"Email address",pw:"Password (min. 6 characters)",b1:"Sign in",b2:"Create account",b3:"Send link",proc:"Processing...",fgt:"Forgot your password?",back:"← Back",rst:"Enter your email to receive a reset link.",ep:"Incorrect email or password.",okReg:"Account created! Check your email.",okRst:"We sent you a reset link."},
