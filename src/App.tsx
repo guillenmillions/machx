@@ -223,6 +223,8 @@ export default function CotizadorProEstandar() {
     setTimeout(()=>setNotif(null), 3500);
   }
 
+  const [sesionKey, setSesionKey] = useState(0);
+
   // ── Auth ─────────────────────────────────────────────────────────────────────
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }: any) => {
@@ -235,6 +237,7 @@ export default function CotizadorProEstandar() {
         try {
           const lang = localStorage.getItem("cot_lang") || "es";
           setIdiomaActivo(lang);
+          setSesionKey(k => k + 1); // fuerza re-render de todos los componentes
         } catch {}
       }
     });
@@ -360,12 +363,12 @@ export default function CotizadorProEstandar() {
 
       {/* CONTENIDO */}
       <main style={{ maxWidth:1100, margin:"0 auto", padding:"24px 16px" }}>
-        {pestana==="cotizar"    && <PestanaCotizar    key={idiomaActivo} lang={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} cotEnEdicion={cotEnEdicion} onLimpiarEdicion={()=>setCotEnEdicion(null)} mostrarNotif={mostrarNotif} />}
-        {pestana==="lista"      && <PestanaLista      key={idiomaActivo} lang={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} onEditarCompleto={handleEditarCompleto} mostrarNotif={mostrarNotif} setPestana={setPestana} />}
-        {pestana==="materiales" && <PestanaMateriales key={idiomaActivo} lang={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} />}
-        {pestana==="procesos"   && <PestanaProcesos   key={idiomaActivo} lang={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} />}
-        {pestana==="clientes"   && <PestanaClientes   key={idiomaActivo} lang={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} mostrarNotif={mostrarNotif} />}
-        {pestana==="config"     && <PestanaConfig     key={idiomaActivo} lang={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} setIdiomaActivo={setIdiomaActivo} />}
+        {pestana==="cotizar"    && <PestanaCotizar    key={`${idiomaActivo}-${sesionKey}`} lang={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} cotEnEdicion={cotEnEdicion} onLimpiarEdicion={()=>setCotEnEdicion(null)} mostrarNotif={mostrarNotif} />}
+        {pestana==="lista"      && <PestanaLista      key={`${idiomaActivo}-${sesionKey}`} lang={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} onEditarCompleto={handleEditarCompleto} mostrarNotif={mostrarNotif} setPestana={setPestana} />}
+        {pestana==="materiales" && <PestanaMateriales key={`${idiomaActivo}-${sesionKey}`} lang={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} />}
+        {pestana==="procesos"   && <PestanaProcesos   key={`${idiomaActivo}-${sesionKey}`} lang={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} />}
+        {pestana==="clientes"   && <PestanaClientes   key={`${idiomaActivo}-${sesionKey}`} lang={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} mostrarNotif={mostrarNotif} />}
+        {pestana==="config"     && <PestanaConfig     key={`${idiomaActivo}-${sesionKey}`} lang={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} setIdiomaActivo={setIdiomaActivo} />}
       </main>
     </div>
   );
