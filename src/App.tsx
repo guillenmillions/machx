@@ -129,8 +129,13 @@ function PantallaLogin({ onLang }: { onLang: (l: string) => void }) {
 
   async function handleLogin(e: any) {
     e.preventDefault(); setCarg(true); setMsg(null);
-    try { localStorage.setItem("cot_lang", lang); } catch {}
+    console.log("[LOGIN] lang seleccionado:", lang);
+    try {
+      localStorage.setItem("cot_lang", lang);
+      console.log("[LOGIN] localStorage guardado:", localStorage.getItem("cot_lang"));
+    } catch (err) { console.error("[LOGIN] Error guardando:", err); }
     const { error } = await supabase.auth.signInWithPassword({ email, password });
+    console.log("[LOGIN] Despues de Supabase, localStorage:", localStorage.getItem("cot_lang"));
     if (error) { setMsg({ tipo:"error", texto:"Correo o contraseña incorrectos." }); setCarg(false); }
     setCarg(false);
   }
