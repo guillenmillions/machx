@@ -107,7 +107,7 @@ const DATOS_INICIALES = {
 // ═══════════════════════════════════════════════════════════════════════════════
 // PANTALLA DE LOGIN
 // ═══════════════════════════════════════════════════════════════════════════════
-function PantallaLogin() {
+function PantallaLogin({ onLang }: { onLang: (l: string) => void }) {
   const [modo, setModo]     = useState<"login"|"registro"|"reset">("login");
   const [email, setEmail]   = useState("");
   const [password, setPass] = useState("");
@@ -130,8 +130,9 @@ function PantallaLogin() {
   async function handleLogin(e: any) {
     e.preventDefault(); setCarg(true); setMsg(null);
     try { localStorage.setItem("cot_lang", lang); } catch {}
+    onLang(lang);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) setMsg({ tipo:"error", texto:"Correo o contraseña incorrectos." });
+    if (error) { setMsg({ tipo:"error", texto:"Correo o contraseña incorrectos." }); onLang("es"); }
     setCarg(false);
   }
   async function handleRegistro(e: any) {
@@ -287,7 +288,7 @@ export default function CotizadorProEstandar() {
     </div>
   );
 
-  if (!sesion) return <PantallaLogin />;
+  if (!sesion) return <PantallaLogin onLang={(l) => { setIdiomaActivo(l); setSesionKey(k => k + 1); }} />;
 
   const t        = TEMAS[datos.tema] || TEMAS.oscuro;
   const tamFuente = datos.tamTexto === "chico" ? 13 : datos.tamTexto === "grande" ? 16 : 14;
