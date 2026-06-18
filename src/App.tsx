@@ -209,7 +209,11 @@ export default function CotizadorProEstandar() {
   const [notif, setNotif]                 = useState<{msg:string;tipo:"ok"|"error"|"warn"}|null>(null);
   const [cotEnEdicion, setCotEnEdicion]   = useState<any>(null);
   const [idiomaActivo, setIdiomaActivo]   = useState<string>(() => {
-    try { return localStorage.getItem("cot_lang") || "es"; } catch { return "es"; }
+    try {
+      const l = localStorage.getItem("cot_lang") || "es";
+      console.log("[CotizadorPRO] idiomaActivo init:", l);
+      return l;
+    } catch { return "es"; }
   });
 
   function mostrarNotif(msg: string, tipo:"ok"|"error"|"warn"="ok") {
@@ -241,9 +245,7 @@ export default function CotizadorProEstandar() {
         .limit(1)
         .single();
       if (data && !error) {
-        const lang = localStorage.getItem("cot_lang") || "es";
-        setIdiomaActivo(lang);
-        setDatos({ ...DATOS_INICIALES, ...data.datos, config:{ ...DATOS_INICIALES.config, ...(data.datos?.config||{}), idioma:lang } });
+        setDatos({ ...DATOS_INICIALES, ...data.datos });
       }
     })();
   }, [sesion]);
