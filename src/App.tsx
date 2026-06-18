@@ -229,6 +229,13 @@ export default function CotizadorProEstandar() {
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_: any, session: any) => {
       setSesion(session);
+      if (session) {
+        // Usuario acaba de hacer login — leer el idioma que eligió en el login
+        try {
+          const lang = localStorage.getItem("cot_lang") || "es";
+          setIdiomaActivo(lang);
+        } catch {}
+      }
     });
     return () => subscription.unsubscribe();
   }, []);
