@@ -130,11 +130,10 @@ function PantallaLogin({ onLang }: { onLang: (l: string) => void }) {
   async function handleLogin(e: any) {
     e.preventDefault(); setCarg(true); setMsg(null);
     try { localStorage.setItem("cot_lang", lang); } catch {}
-    onLang(lang);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) { setMsg({ tipo:"error", texto:"Correo o contraseña incorrectos." }); onLang("es"); }
-    else { window.location.reload(); }
-    setCarg(false);
+    if (error) { setMsg({ tipo:"error", texto:"Correo o contraseña incorrectos." }); setCarg(false); return; }
+    // Recargar con el idioma en la URL para que la app lo tome al iniciar
+    window.location.href = window.location.pathname + "?lang=" + lang;
   }
   async function handleRegistro(e: any) {
     e.preventDefault(); setCarg(true); setMsg(null);
@@ -212,16 +211,20 @@ export default function CotizadorProEstandar() {
   const [pestana, setPestana]             = useState("cotizar");
   const [notif, setNotif]                 = useState<{msg:string;tipo:"ok"|"error"|"warn"}|null>(null);
   const [cotEnEdicion, setCotEnEdicion]   = useState<any>(null);
-  const [_idiomaGuardado, _setIdiomaGuardado] = useState<string>(() => {
-    try { return localStorage.getItem("cot_lang") || "es"; } catch { return "es"; }
+  const [idiomaActivo, setIdiomaActivo]   = useState<string>(() => {
+    try {
+      // Leer de URL param si existe (viene del login), luego limpiar la URL
+      const params = new URLSearchParams(window.location.search);
+      const urlLang = params.get("lang");
+      if (urlLang && ["es","en","pt"].includes(urlLang)) {
+        localStorage.setItem("cot_lang", urlLang);
+        // Limpiar la URL sin recargar
+        window.history.replaceState({}, "", window.location.pathname);
+        return urlLang;
+      }
+      return localStorage.getItem("cot_lang") || "es";
+    } catch { return "es"; }
   });
-  // Leer directo de localStorage en cada render para garantizar frescura
-  const idiomaActivo = (() => { try { return localStorage.getItem("cot_lang") || "es"; } catch { return "es"; } })();
-  function setIdiomaActivo(l: string) {
-    try { localStorage.setItem("cot_lang", l); } catch {}
-    _setIdiomaGuardado(l);
-    setIdiomaKey(k => k + 1);
-  }
 
   function mostrarNotif(msg: string, tipo:"ok"|"error"|"warn"="ok") {
     setNotif({msg,tipo});
@@ -229,7 +232,6 @@ export default function CotizadorProEstandar() {
   }
 
   const [sesionKey, setSesionKey] = useState(0);
-  const [idiomaKey, setIdiomaKey] = useState(0);
 
   // ── Auth ─────────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -293,7 +295,7 @@ export default function CotizadorProEstandar() {
     </div>
   );
 
-  if (!sesion) return <PantallaLogin onLang={(l) => { setIdiomaActivo(l); setSesionKey(k => k + 1); }} />;
+  if (!sesion) return <PantallaLogin onLang={() => {}} />;
 
   const t        = TEMAS[datos.tema] || TEMAS.oscuro;
   const tamFuente = datos.tamTexto === "chico" ? 13 : datos.tamTexto === "grande" ? 16 : 14;
@@ -369,12 +371,12 @@ export default function CotizadorProEstandar() {
 
       {/* CONTENIDO */}
       <main style={{ maxWidth:1100, margin:"0 auto", padding:"24px 16px" }}>
-        {pestana==="cotizar"    && <PestanaCotizar    key={`${idiomaActivo}-${sesionKey}-${idiomaKey}`} lang={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} cotEnEdicion={cotEnEdicion} onLimpiarEdicion={()=>setCotEnEdicion(null)} mostrarNotif={mostrarNotif} />}
-        {pestana==="lista"      && <PestanaLista      key={`${idiomaActivo}-${sesionKey}-${idiomaKey}`} lang={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} onEditarCompleto={handleEditarCompleto} mostrarNotif={mostrarNotif} setPestana={setPestana} />}
-        {pestana==="materiales" && <PestanaMateriales key={`${idiomaActivo}-${sesionKey}-${idiomaKey}`} lang={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} />}
-        {pestana==="procesos"   && <PestanaProcesos   key={`${idiomaActivo}-${sesionKey}-${idiomaKey}`} lang={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} />}
-        {pestana==="clientes"   && <PestanaClientes   key={`${idiomaActivo}-${sesionKey}-${idiomaKey}`} lang={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} mostrarNotif={mostrarNotif} />}
-        {pestana==="config"     && <PestanaConfig     key={`${idiomaActivo}-${sesionKey}-${idiomaKey}`} lang={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} setIdiomaActivo={setIdiomaActivo} />}
+        {pestana==="cotizar"    && <PestanaCotizar    key={`${idiomaActivo}-${sesionKey}`} lang={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} cotEnEdicion={cotEnEdicion} onLimpiarEdicion={()=>setCotEnEdicion(null)} mostrarNotif={mostrarNotif} />}
+        {pestana==="lista"      && <PestanaLista      key={`${idiomaActivo}-${sesionKey}`} lang={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} onEditarCompleto={handleEditarCompleto} mostrarNotif={mostrarNotif} setPestana={setPestana} />}
+        {pestana==="materiales" && <PestanaMateriales key={`${idiomaActivo}-${sesionKey}`} lang={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} />}
+        {pestana==="procesos"   && <PestanaProcesos   key={`${idiomaActivo}-${sesionKey}`} lang={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} />}
+        {pestana==="clientes"   && <PestanaClientes   key={`${idiomaActivo}-${sesionKey}`} lang={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} mostrarNotif={mostrarNotif} />}
+        {pestana==="config"     && <PestanaConfig     key={`${idiomaActivo}-${sesionKey}`} lang={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} setIdiomaActivo={setIdiomaActivo} />}
       </main>
     </div>
   );
