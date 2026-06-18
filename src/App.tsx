@@ -7,18 +7,6 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// ─── MONEDAS ──────────────────────────────────────────────────────────────────> = {
-  MXN: { id:"MXN", label:"Peso Mexicano",     simbolo:"$",  locale:"es-MX", flag:"🇲🇽" },
-  USD: { id:"USD", label:"Dólar Americano",   simbolo:"$",  locale:"en-US", flag:"🇺🇸" },
-  EUR: { id:"EUR", label:"Euro",              simbolo:"€",  locale:"de-DE", flag:"🇪🇺" },
-  CAD: { id:"CAD", label:"Dólar Canadiense",  simbolo:"$",  locale:"en-CA", flag:"🇨🇦" },
-  COP: { id:"COP", label:"Peso Colombiano",   simbolo:"$",  locale:"es-CO", flag:"🇨🇴" },
-  ARS: { id:"ARS", label:"Peso Argentino",    simbolo:"$",  locale:"es-AR", flag:"🇦🇷" },
-  BRL: { id:"BRL", label:"Real Brasileño",    simbolo:"R$", locale:"pt-BR", flag:"🇧🇷" },
-  CLP: { id:"CLP", label:"Peso Chileno",      simbolo:"$",  locale:"es-CL", flag:"🇨🇱" },
-  PEN: { id:"PEN", label:"Sol Peruano",       simbolo:"S/", locale:"es-PE", flag:"🇵🇪" },
-  GBP: { id:"GBP", label:"Libra Esterlina",   simbolo:"£",  locale:"en-GB", flag:"🇬🇧" },
-};
 
 // ─── TEXTOS BILINGÜE ──────────────────────────────────────────────────────────
 // ─── FÓRMULA DE CÁLCULO (no modificar) ───────────────────────────────────────
