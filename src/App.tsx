@@ -65,32 +65,89 @@ async function fetchTipoCambio(): Promise<number> {
 }
 
 
-// ─── DATOS INICIALES ──────────────────────────────────────────────────────────
-const DATOS_INICIALES = {
-  taller: {
-    nombre:"", telefono:"", email:"", logo:"",
-    rfc:"", razonSocial:"", direccionFiscal:"",
-  },
-  config: { pctGD:35, pctSGV:15, pctMargen:25, tc:17.5, moneda:"MXN", idioma:"es", folioPrefix:"COT", folioSiguiente:1,
-    impuestoNombre:"IVA", impuestoPct:16, impuestoActivo:true },
-  tema:"claro", fuente:"IBM Plex Sans", tamTexto:"normal", plantillaPDF:"formal",
-  materiales: [
+// ─── DATOS INICIALES (localizados según idioma elegido por el usuario) ───────
+const IMPUESTO_DEFECTO: Record<string,{nombre:string;pct:number}> = {
+  es:{ nombre:"IVA", pct:16 }, en:{ nombre:"Sales Tax", pct:16 }, pt:{ nombre:"ICMS", pct:16 },
+};
+const MATERIALES_DEFECTO: Record<string, {id:number;nombre:string;precio:number}[]> = {
+  es: [
     { id:1, nombre:"Acero 1018",           precio:45  },
     { id:2, nombre:"Acero inoxidable 304", precio:120 },
     { id:3, nombre:"Aluminio 6061",        precio:85  },
     { id:4, nombre:"Acero 4140",           precio:58  },
     { id:5, nombre:"Aluminio 7075-T6",     precio:185 },
   ],
-  procesos: [
+  en: [
+    { id:1, nombre:"Steel 1018",           precio:45  },
+    { id:2, nombre:"Stainless Steel 304",  precio:120 },
+    { id:3, nombre:"Aluminum 6061",        precio:85  },
+    { id:4, nombre:"Steel 4140",           precio:58  },
+    { id:5, nombre:"Aluminum 7075-T6",     precio:185 },
+  ],
+  pt: [
+    { id:1, nombre:"Aço 1018",             precio:45  },
+    { id:2, nombre:"Aço inoxidável 304",   precio:120 },
+    { id:3, nombre:"Alumínio 6061",        precio:85  },
+    { id:4, nombre:"Aço 4140",             precio:58  },
+    { id:5, nombre:"Alumínio 7075-T6",     precio:185 },
+  ],
+};
+const PROCESOS_DEFECTO: Record<string, {id:number;nombre:string;tarifa:number}[]> = {
+  es: [
     { id:1, nombre:"Torno CNC",          tarifa:350 },
     { id:2, nombre:"Fresadora CNC",      tarifa:400 },
     { id:3, nombre:"Rectificado",        tarifa:280 },
     { id:4, nombre:"Soldadura TIG",      tarifa:280 },
     { id:5, nombre:"Corte Láser",        tarifa:380 },
   ],
-  cotizaciones: [] as any[],
-  clientes:     [] as any[],
+  en: [
+    { id:1, nombre:"CNC Lathe",          tarifa:350 },
+    { id:2, nombre:"CNC Milling",        tarifa:400 },
+    { id:3, nombre:"Grinding",           tarifa:280 },
+    { id:4, nombre:"TIG Welding",        tarifa:280 },
+    { id:5, nombre:"Laser Cutting",      tarifa:380 },
+  ],
+  pt: [
+    { id:1, nombre:"Torno CNC",          tarifa:350 },
+    { id:2, nombre:"Fresadora CNC",      tarifa:400 },
+    { id:3, nombre:"Retificação",        tarifa:280 },
+    { id:4, nombre:"Soldagem TIG",       tarifa:280 },
+    { id:5, nombre:"Corte a Laser",      tarifa:380 },
+  ],
 };
+function crearDatosIniciales(idioma: string) {
+  const l = (idioma==="en"||idioma==="pt") ? idioma : "es";
+  const imp = IMPUESTO_DEFECTO[l];
+  return {
+    taller: {
+      nombre:"", telefono:"", email:"", logo:"",
+      rfc:"", razonSocial:"", direccionFiscal:"",
+    },
+    config: { pctGD:35, pctSGV:15, pctMargen:25, tc:17.5, moneda:"MXN", idioma:l, folioPrefix:"COT", folioSiguiente:1,
+      impuestoNombre:imp.nombre, impuestoPct:imp.pct, impuestoActivo:true },
+    tema:"claro", fuente:"IBM Plex Sans", tamTexto:"normal", plantillaPDF:"formal",
+    materiales: MATERIALES_DEFECTO[l].map(m=>({...m})),
+    procesos:   PROCESOS_DEFECTO[l].map(p=>({...p})),
+    cotizaciones: [] as any[],
+    clientes:     [] as any[],
+  };
+}
+
+// ─── ÍCONO DE MARCA — MachX (mira de precisión) ──────────────────────────────
+function IconoMachX({ size = 24 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden="true">
+      <rect x="9" y="9" width="30" height="30" rx="6" stroke="white" strokeWidth="3"/>
+      <line x1="14" y1="14" x2="34" y2="34" stroke="white" strokeWidth="4" strokeLinecap="round"/>
+      <line x1="34" y1="14" x2="14" y2="34" stroke="white" strokeWidth="4" strokeLinecap="round"/>
+      <circle cx="24" cy="24" r="2.5" fill="white"/>
+      <line x1="9" y1="9" x2="3" y2="3" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+      <line x1="39" y1="9" x2="45" y2="3" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+      <line x1="9" y1="39" x2="3" y2="45" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+      <line x1="39" y1="39" x2="45" y2="45" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+  );
+}
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // PANTALLA DE LOGIN
@@ -157,7 +214,7 @@ function PantallaLogin({ onLang }: { onLang: (l: string) => void }) {
           ))}
         </div>
         <div style={{ textAlign:"center", marginBottom:32 }}>
-          <div style={{ display:"inline-flex", alignItems:"center", justifyContent:"center", width:56, height:56, borderRadius:14, background:t.accent, marginBottom:16, fontSize:26 }}>⚙️</div>
+          <div style={{ display:"inline-flex", alignItems:"center", justifyContent:"center", width:56, height:56, borderRadius:14, background:t.accent, marginBottom:16 }}><IconoMachX size={28}/></div>
           <div style={{ fontSize:22, fontWeight:800, color:t.text }}>MachX</div>
           <div style={{ fontSize:13, color:t.textSub, marginTop:4 }}>{lx.sub}</div>
           <div style={{ fontSize:11, color:"#475569", marginTop:8, lineHeight:1.5 }}>
@@ -198,13 +255,13 @@ function PantallaLogin({ onLang }: { onLang: (l: string) => void }) {
 export default function CotizadorProEstandar() {
   const [sesion, setSesion]               = useState<any>(null);
   const [cargandoSesion, setCargSesion]   = useState(true);
-  const [datos, setDatos]                 = useState<any>(DATOS_INICIALES);
+  const idiomaActivo = (() => { try { return localStorage.getItem("cot_lang") || "es"; } catch { return "es"; } })();
+  const [datos, setDatos]                 = useState<any>(() => crearDatosIniciales(idiomaActivo));
   const [guardando, setGuardando]         = useState(false);
   const [pestana, setPestana]             = useState("cotizar");
   const [notif, setNotif]                 = useState<{msg:string;tipo:"ok"|"error"|"warn"}|null>(null);
   const [cotEnEdicion, setCotEnEdicion]   = useState<any>(null);
-    const [_langTick, _setLangTick] = useState(0);
-  const idiomaActivo = (() => { try { return localStorage.getItem("cot_lang") || "es"; } catch { return "es"; } })();
+  const [_langTick, _setLangTick] = useState(0);
   function setIdiomaActivo(l: string) { try { localStorage.setItem("cot_lang", l); } catch {} _setLangTick(t => t+1); }
 
   function mostrarNotif(msg: string, tipo:"ok"|"error"|"warn"="ok") {
@@ -245,7 +302,10 @@ export default function CotizadorProEstandar() {
         .limit(1)
         .single();
       if (data && !error) {
-        setDatos({ ...DATOS_INICIALES, ...data.datos });
+        setDatos({ ...crearDatosIniciales(idiomaActivo), ...data.datos });
+      } else {
+        // Cuenta nueva, sin fila guardada todavía: usar valores localizados al idioma activo
+        setDatos(crearDatosIniciales(idiomaActivo));
       }
     })();
   }, [sesion]);
@@ -321,7 +381,7 @@ export default function CotizadorProEstandar() {
         <div style={{ display:"flex", alignItems:"center", gap:12 }}>
           {datos.taller.logo
             ? <img src={datos.taller.logo} alt="logo" style={{ height:36, borderRadius:6, objectFit:"contain" }}/>
-            : <div style={{ width:36, height:36, borderRadius:8, background:t.accent, display:"flex", alignItems:"center", justifyContent:"center", fontSize:18 }}>⚙️</div>
+            : <div style={{ width:36, height:36, borderRadius:8, background:t.accent, display:"flex", alignItems:"center", justifyContent:"center" }}><IconoMachX size={20}/></div>
           }
           <div>
             <div style={{ fontWeight:800, fontSize:15, color:t.text }}>{datos.taller.nombre||"MachX"}</div>
@@ -566,7 +626,7 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, lang, cotEnEdici
         </div>
         {/* Datos fiscales */}
         <div style={{ background:t.input, borderRadius:8, padding:14, marginBottom:8 }}>
-          <div style={{ fontSize:11, fontWeight:700, color:t.textSub, textTransform:"uppercase" as const, letterSpacing:"0.07em", marginBottom:10 }}>🏛 Datos Fiscales (opcional)</div>
+          <div style={{ fontSize:11, fontWeight:700, color:t.textSub, textTransform:"uppercase" as const, letterSpacing:"0.07em", marginBottom:10 }}>🏛 {tx.datosFiscalesOpcionalTitulo||"Datos Fiscales (opcional)"}</div>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
             <div><label style={label}>{tx.rfc||"RFC"}</label><input style={inp} value={clienteRFC} onChange={e=>setClienteRFC(e.target.value.toUpperCase())} placeholder={tx.phRFC||"RFC del cliente"}/></div>
             <div><label style={label}>{tx.razonSocial||"Razón Social"}</label><input style={inp} value={clienteRazon} onChange={e=>setClienteRazon(e.target.value)} placeholder={tx.phRazon||"Razón social completa"}/></div>
@@ -961,7 +1021,7 @@ function VistaPDF({ datos, lineasCalc, res, extras, folio, descripcion, nota, cl
   const txPDF   = getT(idioma);
   const fmt2    = (n: number) => fmtMoneda(convertirMoneda(n, moneda, tc), moneda);
   const mLabel  = moneda !== "MXN" ? moneda : "MXN";
-  const tallerNombre = datos.taller?.razonSocial || datos.taller?.nombre || "Taller de Maquinado Industrial";
+  const tallerNombre = datos.taller?.razonSocial || datos.taller?.nombre || txPDF.tallerFallback || "Taller de Maquinado Industrial";
   const totalVenta   = res.precioVenta;
   const plantilla    = datos.plantillaPDF || "formal";
 
@@ -1053,7 +1113,7 @@ function VistaPDF({ datos, lineasCalc, res, extras, folio, descripcion, nota, cl
               // El precio al cliente es la parte proporcional del precio de venta total
               const pesoPartida = res.precioVenta > 0 ? l.subtotal / (res.costoDirecto||1) : 0;
               const precioClientePartida = res.precioVenta * pesoPartida;
-              const nombreMostrar = l.nombrePartida || l.proceso || `Partida ${i+1}`;
+              const nombreMostrar = l.nombrePartida || l.proceso || `${txPDF.partidaFallback||"Partida"} ${i+1}`;
               return (
                 <tr key={l.id||i} style={{ borderBottom: plantilla==="industrial"?"1px solid #1e3a5f":"1px solid #e8ebf0", background: i%2===0&&plantilla!=="industrial"?"#f7f8fa":"transparent" }}>
                   <td style={{ ...estilosComunes.td, textAlign:"center" as const, color:"#94a3b8", fontWeight:600 }}>{i+1}</td>
@@ -1357,6 +1417,21 @@ function ActualizarTC({ t, tamFuente, tcActual, onActualizar, lang }: any) {
   );
 }
 
+const IMPUESTO_PRESETS = [
+  { pais:{es:"México",en:"Mexico",pt:"México"},                       nombre:"IVA",      pct:16, activo:true },
+  { pais:{es:"Estados Unidos",en:"United States",pt:"Estados Unidos"}, nombre:"Sales Tax", pct:7,  activo:true },
+  { pais:{es:"Canadá",en:"Canada",pt:"Canadá"},                        nombre:"GST/HST",  pct:13, activo:true },
+  { pais:{es:"España",en:"Spain",pt:"Espanha"},                        nombre:"IVA",      pct:21, activo:true },
+  { pais:{es:"Alemania",en:"Germany",pt:"Alemanha"},                   nombre:"VAT",      pct:19, activo:true },
+  { pais:{es:"Reino Unido",en:"United Kingdom",pt:"Reino Unido"},      nombre:"VAT",      pct:20, activo:true },
+  { pais:{es:"Colombia",en:"Colombia",pt:"Colômbia"},                  nombre:"IVA",      pct:19, activo:true },
+  { pais:{es:"Chile",en:"Chile",pt:"Chile"},                           nombre:"IVA",      pct:19, activo:true },
+  { pais:{es:"Argentina",en:"Argentina",pt:"Argentina"},               nombre:"IVA",      pct:21, activo:true },
+  { pais:{es:"Perú",en:"Peru",pt:"Peru"},                              nombre:"IGV",      pct:18, activo:true },
+  { pais:{es:"Brasil",en:"Brazil",pt:"Brasil"},                        nombre:"ICMS",     pct:18, activo:true },
+  { pais:{es:"Exportación / Sin impuesto",en:"Export / No tax",pt:"Exportação / Sem imposto"}, nombre:"", pct:0, activo:false },
+];
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // PESTAÑA: CONFIGURACIÓN
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -1384,8 +1459,12 @@ function PestanaConfig({ datos, actualizarDatos, t, tamFuente, lang, setIdiomaAc
           <div><label style={label}>{tx.email||"Email"}</label><input style={inp} value={datos.taller.email||""} onChange={e=>actualizarDatos({ taller:{...datos.taller,email:e.target.value} })}/></div>
           <div>
             <label style={label}>{tx.logoTaller||"Logo del taller"}</label>
-            <input type="file" accept="image/*" onChange={subirLogo} style={{ ...inp, padding:"6px 12px" }}/>
-            {datos.taller.logo && <img src={datos.taller.logo} alt="logo" style={{ marginTop:10, height:50, borderRadius:6 }}/>}
+            <label style={{ ...inp, padding:"9px 12px", cursor:"pointer", display:"inline-flex", alignItems:"center", gap:10 }}>
+              {tx.subirLogoBtn||"📁 Seleccionar archivo"}
+              {datos.taller.logo && <span style={{ fontSize:12, color:t.success }}>{tx.logoCargadoLbl||"Logo cargado ✓"}</span>}
+              <input type="file" accept="image/*" onChange={subirLogo} style={{ display:"none" }}/>
+            </label>
+            {datos.taller.logo && <img src={datos.taller.logo} alt="logo" style={{ marginTop:10, height:50, borderRadius:6, display:"block" }}/>}
           </div>
         </div>
         {/* Datos fiscales del taller */}
@@ -1449,6 +1528,20 @@ function PestanaConfig({ datos, actualizarDatos, t, tamFuente, lang, setIdiomaAc
         <div style={{ fontWeight:700, fontSize:tamFuente+2, marginBottom:6, color:t.text }}>{`🧾 ${tx.impuestoVentas||"Impuesto sobre Ventas"}`}</div>
         <div style={{ fontSize:12, color:t.textSub, marginBottom:16 }}>
           {tx.impuestoAyuda||"Configura el impuesto según tu país: IVA 16% (México), Sales Tax (EE.UU.), VAT 19% (Alemania), o desactívalo para exportaciones con tasa cero."}
+        </div>
+        <div style={{ marginBottom:14 }}>
+          <label style={label}>{tx.impuestoPresetLbl||"Plantilla rápida (opcional)"}</label>
+          <select style={inp} value="" onChange={e=>{
+            const idx = parseInt(e.target.value);
+            if (Number.isNaN(idx)) return;
+            const p = IMPUESTO_PRESETS[idx];
+            actualizarDatos({ config:{...datos.config, impuestoNombre:p.nombre||datos.config?.impuestoNombre||"IVA", impuestoPct:p.pct, impuestoActivo:p.activo} });
+          }}>
+            <option value="">{tx.impuestoPresetPlaceholder||"Selecciona tu país…"}</option>
+            {IMPUESTO_PRESETS.map((p,i)=>(
+              <option key={i} value={i}>{(p.pais as any)[lang]||p.pais.es} — {p.activo?`${p.nombre} ${p.pct}%`:(tx.noTasaCero||"Sin impuesto")}</option>
+            ))}
+          </select>
         </div>
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:16, marginBottom:12 }}>
           <div>
