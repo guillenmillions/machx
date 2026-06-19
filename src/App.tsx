@@ -341,7 +341,7 @@ export default function CotizadorProEstandar() {
           { id:"lista",       label:`📁 ${tx.misCots}`      },
           { id:"materiales",  label:`🔩 ${tx.materiales}`   },
           { id:"procesos",    label:`⚙️ ${tx.procesos}`     },
-          { id:"clientes",    label:"👥 Clientes"           },
+          { id:"clientes",    label:`👥 ${tx.clientes}`     },
           { id:"config",      label:`🎛️ ${tx.configuracion}` },
         ].map(tab => (
           <button key={tab.id} onClick={()=>setPestana(tab.id)} style={{ padding:"14px 16px", border:"none", background:"transparent", cursor:"pointer", color:pestana===tab.id?t.accent:t.textSub, borderBottom:`2px solid ${pestana===tab.id?t.accent:"transparent"}`, fontWeight:pestana===tab.id?700:400, fontSize:tamFuente, fontFamily:`'${datos.fuente}',sans-serif`, whiteSpace:"nowrap" as const }}>
@@ -530,7 +530,7 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, lang, cotEnEdici
             <input style={{ ...inp, marginBottom:12 }} placeholder={tx.phBuscar||"Buscar…"} value={buscaCli} onChange={e=>setBuscaCli(e.target.value)} />
             <div style={{ overflowY:"auto", flex:1 }}>
               {(datos.clientes||[]).length === 0
-                ? <div style={{ textAlign:"center", padding:40, color:t.textSub }}>Sin clientes en catálogo. Guarda uno desde esta pantalla.</div>
+                ? <div style={{ textAlign:"center", padding:40, color:t.textSub }}>{tx.sinClientesCat||"Sin clientes en catálogo."}</div>
                 : (datos.clientes||[]).filter((c: any) => {
                     const q = buscaCli.toLowerCase();
                     return !q || (c.empresa||"").toLowerCase().includes(q) || (c.nombre||"").toLowerCase().includes(q);
@@ -615,7 +615,7 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, lang, cotEnEdici
       <div style={card}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4 }}>
           <div style={{ fontWeight:700, fontSize:tamFuente+1 }}>{`🔩 ${tx.partidas||"Partidas del trabajo"}`}</div>
-          <span style={{ fontSize:11, color:t.textSub }}>El nombre de cada partida es lo que verá el cliente en el PDF</span>
+          <span style={{ fontSize:11, color:t.textSub }}>{tx.notaPartidas||"El nombre de cada partida es lo que verá el cliente en el PDF"}</span>
         </div>
 
         <div style={{ display:"flex", flexDirection:"column" as const, gap:10, marginTop:12 }}>
@@ -656,14 +656,14 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, lang, cotEnEdici
                       onChange={e=>cambiarLinea(l.id,"cantidad",parseInt(e.target.value)||1)}/>
                   </div>
                   <div>
-                    <div style={{ fontSize:11, color:t.textSub, marginBottom:4 }}>Proceso</div>
+                    <div style={{ fontSize:11, color:t.textSub, marginBottom:4 }}>{tx.proceso||"Proceso"}</div>
                     <select style={inp} value={l.proceso} onChange={e=>cambiarLinea(l.id,"proceso",e.target.value)}>
                       <option value="">{tx.phProceso||"Seleccionar proceso…"}</option>
                       {datos.procesos.map((p: any)=><option key={p.id} value={p.nombre}>{p.nombre} — ${p.tarifa}/hr</option>)}
                     </select>
                   </div>
                   <div>
-                    <div style={{ fontSize:11, color:t.textSub, marginBottom:4 }}>Material</div>
+                    <div style={{ fontSize:11, color:t.textSub, marginBottom:4 }}>{tx.materialLbl||"Material"}</div>
                     <select style={inp} value={l.material} onChange={e=>cambiarLinea(l.id,"material",e.target.value)}>
                       <option value="">{tx.phMaterial||"Seleccionar material…"}</option>
                       {datos.materiales.map((m: any)=><option key={m.id} value={m.nombre}>{m.nombre} — ${m.precio}/kg</option>)}
@@ -1192,7 +1192,7 @@ function PestanaClientes({ datos, actualizarDatos, t, tamFuente, lang, mostrarNo
           <input style={{ ...inp, width:240 }} placeholder={tx.phBuscar||"Buscar…"} value={busca} onChange={e=>setBusca(e.target.value)}/>
         </div>
         {clientesFiltrados.length === 0
-          ? <div style={{ textAlign:"center", padding:40, color:t.textSub }}>Sin clientes.</div>
+          ? <div style={{ textAlign:"center", padding:40, color:t.textSub }}>{tx.sinClientes||"Sin clientes."}</div>
           : clientesFiltrados.map((c: any) => (
               <div key={c.id} style={{ padding:"14px 0", borderBottom:`1px solid ${t.border}` }}>
                 {editId === c.id ? (
@@ -1227,7 +1227,7 @@ function EditarCliente({ c, t, tamFuente, inp, label, lang, onGuardar, onCancela
   return (
     <div>
       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:10 }}>
-        <div><label style={label}>Empresa</label><input style={inp} value={d.empresa} onChange={e=>setD(p=>({...p,empresa:e.target.value}))}/></div>
+        <div><label style={label}>{tx.empresa||"Empresa"}</label><input style={inp} value={d.empresa} onChange={e=>setD(p=>({...p,empresa:e.target.value}))}/></div>
         <div><label style={label}>{tx.contacto||"Contacto"}</label><input style={inp} value={d.nombre} onChange={e=>setD(p=>({...p,nombre:e.target.value}))}/></div>
         <div><label style={label}>{tx.email||"Email"}</label><input style={inp} value={d.email} onChange={e=>setD(p=>({...p,email:e.target.value}))}/></div>
         <div><label style={label}>{tx.telefono||"Teléfono"}</label><input style={inp} value={d.tel} onChange={e=>setD(p=>({...p,tel:e.target.value}))}/></div>
@@ -1435,7 +1435,7 @@ function PestanaConfig({ datos, actualizarDatos, t, tamFuente, lang, setIdiomaAc
             <div style={{ fontSize:11, color:t.textSub, marginTop:4 }}>{tx.autoIncrementa||"Se incrementa automáticamente"}</div>
           </div>
           <div>
-            <label style={label}>Vista previa</label>
+            <label style={label}>{tx.vistaPrev||"Vista previa"}</label>
             <div style={{ ...inp, color:t.accent, fontWeight:700, fontFamily:"monospace" }}>
               {(datos.config.folioPrefix||"COT").toUpperCase()}-{new Date().getFullYear()}-{String(datos.config.folioSiguiente||1).padStart(4,"0")}
             </div>
