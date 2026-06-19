@@ -31,11 +31,24 @@ function fmtMoneda(n: number, monedaId = "MXN") {
   return new Intl.NumberFormat(m.locale, { style: "currency", currency: m.id, minimumFractionDigits: 2 }).format(n || 0);
 }
 
-function convertirMoneda(mxnAmount: number, monedaId: string, tc: number) {
+// ─── TASAS DE CAMBIO (todo con referencia a 1 USD) ───────────────────────────
+const TASAS_DEFECTO: Record<string, number> = {
+  MXN:17.5, USD:1, EUR:0.92, CAD:1.36, COP:3900, ARS:900, BRL:4.97, CLP:920, PEN:3.75, GBP:0.79,
+};
+// Monedas que la API de frankfurter.app puede actualizar en vivo (cobertura del BCE)
+const FRANKFURTER_SOPORTADAS = new Set(["MXN","EUR","CAD","BRL","GBP"]);
+
+function convertirMoneda(mxnAmount: number, monedaId: string, tasas: Record<string,number>) {
   if (monedaId === "MXN") return mxnAmount;
-  const tasasVsUSD: Record<string, number> = { USD:1, EUR:0.92, CAD:1.36, COP:3900, ARS:900, BRL:4.97, CLP:920, PEN:3.75, GBP:0.79 };
-  const usd = mxnAmount / (tc || 17.5);
-  return usd * (tasasVsUSD[monedaId] || 1);
+  const t = tasas || TASAS_DEFECTO;
+  const usd = mxnAmount / (t.MXN || TASAS_DEFECTO.MXN);
+  return monedaId === "USD" ? usd : usd * (t[monedaId] ?? TASAS_DEFECTO[monedaId] ?? 1);
+}
+
+// Si una cotización guardada antes de este cambio solo tenía "tc" (MXN por USD), lo migramos a tasas{}
+function tasasDesdeConfig(config: any): Record<string,number> {
+  if (config?.tasas) return { ...TASAS_DEFECTO, ...config.tasas };
+  return { ...TASAS_DEFECTO, MXN: config?.tc || TASAS_DEFECTO.MXN };
 }
 
 // ─── FOLIO CONSECUTIVO ───────────────────────────────────────────────────────
@@ -55,12 +68,14 @@ function generarFolio(config: any, cotizaciones: any[]) {
   return `${prefix}-${anio}-${String(siguiente).padStart(4,"0")}`;
 }
 
-// ─── TIPO DE CAMBIO AUTOMÁTICO (USD → MXN vía API pública) ───────────────────
-async function fetchTipoCambio(): Promise<number> {
+// ─── TIPO DE CAMBIO AUTOMÁTICO (1 USD → moneda seleccionada, vía API pública) ─
+async function fetchTasaUSD(monedaId: string): Promise<number> {
+  if (monedaId === "USD") return 1;
+  if (!FRANKFURTER_SOPORTADAS.has(monedaId)) return 0; // esta moneda no la cubre la API, se ajusta a mano
   try {
-    const res  = await fetch("https://api.frankfurter.app/latest?from=USD&to=MXN");
+    const res  = await fetch(`https://api.frankfurter.app/latest?from=USD&to=${monedaId}`);
     const data = await res.json();
-    return data?.rates?.MXN || 0;
+    return data?.rates?.[monedaId] || 0;
   } catch { return 0; }
 }
 
@@ -123,7 +138,7 @@ function crearDatosIniciales(idioma: string) {
       nombre:"", telefono:"", email:"", logo:"",
       rfc:"", razonSocial:"", direccionFiscal:"",
     },
-    config: { pctGD:35, pctSGV:15, pctMargen:25, tc:17.5, moneda:"MXN", idioma:l, folioPrefix:"COT", folioSiguiente:1,
+    config: { pctGD:35, pctSGV:15, pctMargen:25, tasas:{...TASAS_DEFECTO}, moneda:"MXN", idioma:l, folioPrefix:"COT", folioSiguiente:1,
       impuestoNombre:imp.nombre, impuestoPct:imp.pct, impuestoActivo:true },
     tema:"claro", fuente:"IBM Plex Sans", tamTexto:"normal", plantillaPDF:"formal",
     materiales: MATERIALES_DEFECTO[l].map(m=>({...m})),
@@ -302,7 +317,9 @@ export default function CotizadorProEstandar() {
         .limit(1)
         .single();
       if (data && !error) {
-        setDatos({ ...crearDatosIniciales(idiomaActivo), ...data.datos });
+        const base = crearDatosIniciales(idiomaActivo);
+        const cfgGuardado = data.datos?.config || {};
+        setDatos({ ...base, ...data.datos, config: { ...base.config, ...cfgGuardado, tasas: tasasDesdeConfig(cfgGuardado) } });
       } else {
         // Cuenta nueva, sin fila guardada todavía: usar valores localizados al idioma activo
         setDatos(crearDatosIniciales(idiomaActivo));
@@ -412,12 +429,12 @@ export default function CotizadorProEstandar() {
 
       {/* CONTENIDO */}
       <main style={{ maxWidth:1100, margin:"0 auto", padding:"24px 16px" }}>
-        {pestana==="cotizar"    && <PestanaCotizar    key={`${idiomaActivo}-${sesionKey}`} lang={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} cotEnEdicion={cotEnEdicion} onLimpiarEdicion={()=>setCotEnEdicion(null)} mostrarNotif={mostrarNotif} />}
-        {pestana==="lista"      && <PestanaLista      key={`${idiomaActivo}-${sesionKey}`} lang={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} onEditarCompleto={handleEditarCompleto} mostrarNotif={mostrarNotif} setPestana={setPestana} />}
-        {pestana==="materiales" && <PestanaMateriales key={`${idiomaActivo}-${sesionKey}`} lang={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} />}
-        {pestana==="procesos"   && <PestanaProcesos   key={`${idiomaActivo}-${sesionKey}`} lang={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} />}
-        {pestana==="clientes"   && <PestanaClientes   key={`${idiomaActivo}-${sesionKey}`} lang={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} mostrarNotif={mostrarNotif} />}
-        {pestana==="config"     && <PestanaConfig     key={`${idiomaActivo}-${sesionKey}`} lang={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} setIdiomaActivo={setIdiomaActivo} />}
+        <div style={{ display: pestana==="cotizar"    ? "block":"none" }}><PestanaCotizar    key={`${idiomaActivo}-${sesionKey}-${cotEnEdicion?.cot?.id||"nuevo"}-${cotEnEdicion?.modo||""}`} lang={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} cotEnEdicion={cotEnEdicion} onLimpiarEdicion={()=>setCotEnEdicion(null)} mostrarNotif={mostrarNotif} /></div>
+        <div style={{ display: pestana==="lista"      ? "block":"none" }}><PestanaLista      key={`${idiomaActivo}-${sesionKey}`} lang={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} onEditarCompleto={handleEditarCompleto} mostrarNotif={mostrarNotif} setPestana={setPestana} /></div>
+        <div style={{ display: pestana==="materiales" ? "block":"none" }}><PestanaMateriales key={`${idiomaActivo}-${sesionKey}`} lang={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} /></div>
+        <div style={{ display: pestana==="procesos"   ? "block":"none" }}><PestanaProcesos   key={`${idiomaActivo}-${sesionKey}`} lang={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} /></div>
+        <div style={{ display: pestana==="clientes"   ? "block":"none" }}><PestanaClientes   key={`${idiomaActivo}-${sesionKey}`} lang={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} mostrarNotif={mostrarNotif} /></div>
+        <div style={{ display: pestana==="config"     ? "block":"none" }}><PestanaConfig     key={`${idiomaActivo}-${sesionKey}`} lang={idiomaActivo} datos={datos} actualizarDatos={actualizarDatos} t={t} tamFuente={tamFuente} setIdiomaActivo={setIdiomaActivo} /></div>
       </main>
     </div>
   );
@@ -455,7 +472,7 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, lang, cotEnEdici
   const [showSelectorCli, setShowSelectorCli] = useState(false);
   const [buscaCli,        setBuscaCli]        = useState("");
   const [moneda,          setMoneda]          = useState(cot?.config?.moneda || datos.config?.moneda || "MXN");
-  const [tc,              setTc]              = useState(cot?.config?.tc || datos.config?.tc || 17.5);
+  const [tasas,           setTasas]            = useState<Record<string,number>>(tasasDesdeConfig(cot?.config || datos.config));
   const [idioma,          setIdioma]          = useState(cot?.config?.idioma || datos.config?.idioma || "es");
 
   function nuevaLinea() { return { id: Date.now() + Math.random(), nombrePartida:"", proceso:"", material:"", kg:0, horas:0, cantidad:1 }; }
@@ -475,7 +492,7 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, lang, cotEnEdici
   const res = calcular(totalLabor, totalMaterial, Number(extras)||0, pctGD, pctSGV, pctMargen);
 
   const txCot = getT(idioma);
-  const fmt2  = (n: number) => fmtMoneda(convertirMoneda(n, moneda, tc), moneda);
+  const fmt2  = (n: number) => fmtMoneda(convertirMoneda(n, moneda, tasas), moneda);
   const monedaLabel = moneda !== "MXN" ? ` ${moneda}` : " MXN";
 
   function agregarLinea()                  { setLineas(p => [...p, nuevaLinea()]); }
@@ -514,7 +531,7 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, lang, cotEnEdici
       cliente: { nombre:clienteNombre, empresa:clienteEmpresa, email:clienteEmail, tel:clienteTel, ciudad:clienteCiudad, rfc:clienteRFC, razonSocial:clienteRazon, direccionFiscal:clienteDirFiscal },
       lineas: lineasCalc, extras: Number(extras)||0, nota,
       cond: { entrega, pago, validez },
-      config: { pctGD, pctSGV, pctMargen, moneda, tc, idioma },
+      config: { pctGD, pctSGV, pctMargen, moneda, tasas, idioma },
       precioVenta: res.precioVenta, utilidad: res.utilidad, margenReal: res.margenReal,
     };
 
@@ -558,7 +575,7 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, lang, cotEnEdici
       folio={folio} descripcion={descripcion} nota={nota}
       cliente={{ nombre:clienteNombre, empresa:clienteEmpresa, email:clienteEmail, tel:clienteTel, ciudad:clienteCiudad, rfc:clienteRFC, razonSocial:clienteRazon, direccionFiscal:clienteDirFiscal }}
       cond={{ entrega, pago, validez }}
-      moneda={moneda} tc={tc} idioma={idioma}
+      moneda={moneda} tasas={tasas} idioma={idioma}
       t={t} onCerrar={()=>setShowVistaCliente(false)}
     />
   );
@@ -664,8 +681,11 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, lang, cotEnEdici
               <option value="pt">🇧🇷 Português</option>
             </select>
           </div>
-          {moneda !== "MXN" && (
-            <div><label style={label}>T.C. USD → MXN</label><input type="number" style={inp} value={tc} min={1} step={0.1} onChange={e=>setTc(Number(e.target.value))}/></div>
+          {moneda !== "MXN" && moneda !== "USD" && (
+            <div><label style={label}>{`1 USD → ${moneda}`}</label>
+              <input type="number" style={inp} value={tasas[moneda] ?? TASAS_DEFECTO[moneda] ?? 1} min={0} step={0.0001}
+                onChange={e=>setTasas(prev=>({ ...prev, [moneda]: Number(e.target.value)||0 }))}/>
+            </div>
           )}
           <div style={{ gridColumn:"1/-1" }}><label style={label}>{tx.descTrabajo||"Descripción del trabajo"}</label><input style={inp} value={descripcion} onChange={e=>setDescripcion(e.target.value)} placeholder={tx.phDesc||"Ej: Fabricación..."}/></div>
         </div>
@@ -855,7 +875,7 @@ function PestanaLista({ datos, actualizarDatos, t, tamFuente, lang, onEditarComp
       folio={showVista.folio} descripcion={showVista.descripcion} nota={showVista.nota}
       cliente={showVista.cliente||{}} cond={showVista.cond||{}}
       moneda={showVista.config?.moneda||"MXN"}
-      tc={showVista.config?.tc||17.5}
+      tasas={tasasDesdeConfig(showVista.config)}
       idioma={showVista.config?.idioma||"es"}
       t={t} onCerrar={()=>setShowVista(null)}
     />
@@ -1017,9 +1037,11 @@ function PestanaLista({ datos, actualizarDatos, t, tamFuente, lang, onEditarComp
 // ═══════════════════════════════════════════════════════════════════════════════
 // VISTA PDF / CLIENTE
 // ═══════════════════════════════════════════════════════════════════════════════
-function VistaPDF({ datos, lineasCalc, res, extras, folio, descripcion, nota, cliente, cond, moneda, tc, idioma, t, onCerrar }: any) {
+function VistaPDF({ datos, lineasCalc, res, extras, folio, descripcion, nota, cliente, cond, moneda, tasas, idioma, t, onCerrar }: any) {
   const txPDF   = getT(idioma);
-  const fmt2    = (n: number) => fmtMoneda(convertirMoneda(n, moneda, tc), moneda);
+  const tasasOk = tasas || TASAS_DEFECTO;
+  const fmt2    = (n: number) => fmtMoneda(convertirMoneda(n, moneda, tasasOk), moneda);
+  const tasaActual = moneda==="USD" ? 1 : (tasasOk[moneda] ?? TASAS_DEFECTO[moneda] ?? 1);
   const mLabel  = moneda !== "MXN" ? moneda : "MXN";
   const tallerNombre = datos.taller?.razonSocial || datos.taller?.nombre || txPDF.tallerFallback || "Taller de Maquinado Industrial";
   const totalVenta   = res.precioVenta;
@@ -1046,7 +1068,7 @@ function VistaPDF({ datos, lineasCalc, res, extras, folio, descripcion, nota, cl
         <button onClick={onCerrar} style={{ padding:"7px 14px", borderRadius:8, border:`1px solid ${t.border}`, background:"transparent", color:t.text, cursor:"pointer" }}>{txPDF.volverBtn||"← Volver"}</button>
         <button onClick={()=>window.print()} style={{ padding:"7px 16px", borderRadius:8, border:"none", background:t.accent, color:"#fff", cursor:"pointer", fontWeight:700 }}>{txPDF.imprimirBtn||"🖨 Imprimir / PDF"}</button>
         <span style={{ fontSize:11, color:t.textSub }}>{txPDF.plantillaColonLbl||"Plantilla:"} {plantilla} · {MONEDAS[moneda]?.flag} {moneda} · {idioma==="en"?"English":idioma==="pt"?"Português":"Español"}</span>
-        {moneda !== "MXN" && <span style={{ fontSize:11, color:t.textSub }}>T.C.: 1 USD = ${tc} MXN</span>}
+        {moneda !== "MXN" && <span style={{ fontSize:11, color:t.textSub }}>T.C.: 1 USD = {tasaActual} {moneda}</span>}
       </div>
 
       <div className="print-doc" style={{ ...estilosComunes.wrapper, border: plantilla==="industrial"?"none":"1px solid #e2e8f0", background: plantilla==="industrial"?"#0f1923":"white", color: plantilla==="industrial"?"#e8eaf0":"#1a1d27", boxShadow:"0 4px 24px rgba(0,0,0,0.08)" }}>
@@ -1066,7 +1088,7 @@ function VistaPDF({ datos, lineasCalc, res, extras, folio, descripcion, nota, cl
             <div style={{ fontSize:28, fontWeight:800, letterSpacing:"-0.5px", color: plantilla==="industrial"?"#f97316":undefined }}>{txPDF.cotizacion}</div>
             <div style={{ marginTop:6, fontSize:14, fontWeight:700, background: plantilla==="industrial"?"#f97316":"#1a1d27", color:"white", padding:"3px 12px", borderRadius:4, display:"inline-block" }}>{folio}</div>
             <div style={{ fontSize:12, color:"#94a3b8", marginTop:4 }}>{txPDF.fechaColonLbl||"Fecha:"} {new Date().toLocaleDateString("es-MX")} · {txPDF.vigencia}: {cond.validez||30} {txPDF.dias}</div>
-            {moneda !== "MXN" && <div style={{ fontSize:11, color:"#f97316", marginTop:2 }}>T.C.: 1 USD = ${tc} MXN</div>}
+            {moneda !== "MXN" && <div style={{ fontSize:11, color:"#f97316", marginTop:2 }}>T.C.: 1 USD = {tasaActual} {moneda}</div>}
           </div>
         </div>
 
@@ -1383,7 +1405,7 @@ function PestanaProcesos({ datos, actualizarDatos, t, tamFuente, lang }: any) {
 }
 
 // ─── COMPONENTE: ACTUALIZAR TIPO DE CAMBIO ────────────────────────────────────
-function ActualizarTC({ t, tamFuente, tcActual, onActualizar, lang }: any) {
+function ActualizarTC({ t, tamFuente, tasas, onActualizar, lang }: any) {
   const tx = getT(lang);
   const [cargando,  setCargando]  = useState(false);
   const [resultado, setResultado] = useState<string|null>(null);
@@ -1391,10 +1413,14 @@ function ActualizarTC({ t, tamFuente, tcActual, onActualizar, lang }: any) {
 
   async function actualizar() {
     setCargando(true); setResultado(null);
-    const tc = await fetchTipoCambio();
-    if (tc > 0) {
-      onActualizar(parseFloat(tc.toFixed(4)));
-      setResultado(`✅ TC actualizado: $${tc.toFixed(4)} MXN por 1 USD`);
+    const codigos = [...FRANKFURTER_SOPORTADAS].filter(c=>c!=="USD");
+    const resultados = await Promise.all(codigos.map(c=>fetchTasaUSD(c)));
+    const nuevasTasas: Record<string,number> = {};
+    let algunaFallo = false;
+    codigos.forEach((c,i)=>{ if (resultados[i] > 0) nuevasTasas[c] = resultados[i]; else algunaFallo = true; });
+    if (Object.keys(nuevasTasas).length > 0) {
+      onActualizar({ ...tasas, ...nuevasTasas, USD:1 });
+      setResultado(algunaFallo ? "⚠️ Algunas monedas no se pudieron actualizar." : "✅ Tasas actualizadas correctamente.");
       setUltimaAct(new Date().toLocaleTimeString("es-MX"));
     } else {
       setResultado(tx.tcError||"❌ No se pudo obtener el TC. Verifica tu conexión.");
@@ -1403,16 +1429,25 @@ function ActualizarTC({ t, tamFuente, tcActual, onActualizar, lang }: any) {
   }
 
   return (
-    <div style={{ background: t.input, borderRadius:8, padding:"12px 16px", display:"flex", alignItems:"center", gap:16, flexWrap:"wrap" as const }}>
-      <div style={{ flex:1 }}>
-        <div style={{ fontSize:13, fontWeight:600, color:t.text }}>{tx.tcUsdMxnLbl||"T.C. USD → MXN"}: <span style={{ fontFamily:"monospace", color:t.accent }}>${tcActual.toFixed(4)} MXN / USD</span></div>
-        {ultimaAct && <div style={{ fontSize:11, color:t.textSub, marginTop:2 }}>{tx.tcUltimaAct||"Última actualización:"} {ultimaAct}</div>}
-        {resultado && <div style={{ fontSize:12, color: resultado.startsWith("✅")?t.success:t.danger, marginTop:4 }}>{resultado}</div>}
-        <div style={{ fontSize:11, color:t.textSub, marginTop:4 }}>Fuente: frankfurter.app (Banco Central Europeo) · Se aplica a cotizaciones nuevas, no modifica las guardadas.</div>
+    <div style={{ background: t.input, borderRadius:8, padding:"12px 16px" }}>
+      <div style={{ display:"flex", alignItems:"center", gap:16, flexWrap:"wrap" as const, marginBottom:10 }}>
+        <div style={{ flex:1 }}>
+          <div style={{ fontSize:13, fontWeight:600, color:t.text }}>{tx.tasasAutoTitulo||"Monedas con actualización automática (1 USD →)"}</div>
+          {ultimaAct && <div style={{ fontSize:11, color:t.textSub, marginTop:2 }}>{tx.tcUltimaAct||"Última actualización:"} {ultimaAct}</div>}
+          {resultado && <div style={{ fontSize:12, color: resultado.startsWith("✅")?t.success:t.danger, marginTop:4 }}>{resultado}</div>}
+        </div>
+        <button onClick={actualizar} disabled={cargando} style={{ padding:"9px 18px", borderRadius:8, border:`1px solid ${t.accent}`, background:"transparent", color:t.accent, cursor:cargando?"not-allowed":"pointer", fontWeight:700, fontSize:tamFuente, opacity:cargando?0.6:1, whiteSpace:"nowrap" as const }}>
+          {cargando ? (tx.tcConsultando||"⏳ Consultando…") : (tx.tcActualizarBtn||"🔄 Actualizar TC")}
+        </button>
       </div>
-      <button onClick={actualizar} disabled={cargando} style={{ padding:"9px 18px", borderRadius:8, border:`1px solid ${t.accent}`, background:"transparent", color:t.accent, cursor:cargando?"not-allowed":"pointer", fontWeight:700, fontSize:tamFuente, opacity:cargando?0.6:1, whiteSpace:"nowrap" as const }}>
-        {cargando ? (tx.tcConsultando||"⏳ Consultando…") : (tx.tcActualizarBtn||"🔄 Actualizar TC")}
-      </button>
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:10 }}>
+        {[...FRANKFURTER_SOPORTADAS].filter(c=>c!=="USD").map(c=>(
+          <div key={c} style={{ fontSize:12, color:t.textSub }}>
+            <span style={{ fontWeight:600, color:t.text }}>{MONEDAS[c]?.flag} {c}</span>: {(tasas?.[c] ?? TASAS_DEFECTO[c] ?? 1).toFixed(4)}
+          </div>
+        ))}
+      </div>
+      <div style={{ fontSize:11, color:t.textSub, marginTop:8 }}>{tx.tcFuenteNota||"Fuente: frankfurter.app (Banco Central Europeo) · Se aplica a cotizaciones nuevas, no modifica las guardadas."}</div>
     </div>
   );
 }
@@ -1578,17 +1613,12 @@ function PestanaConfig({ datos, actualizarDatos, t, tamFuente, lang, setIdiomaAc
       {/* Moneda por defecto */}
       <div style={card}>
         <div style={{ fontWeight:700, fontSize:tamFuente+2, marginBottom:20, color:t.text }}>{`💱 ${tx.monedaTC||"Moneda y Tipo de Cambio"}`}</div>
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:16, marginBottom:14 }}>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginBottom:14 }}>
           <div>
             <label style={label}>{tx.monedaDefecto||"Moneda por defecto"}</label>
             <select style={inp} value={datos.config.moneda||"MXN"} onChange={e=>actualizarDatos({ config:{...datos.config,moneda:e.target.value} })}>
               {Object.values(MONEDAS).map(m=><option key={m.id} value={m.id}>{m.flag} {m.id} — {m.label}</option>)}
             </select>
-          </div>
-          <div>
-            <label style={label}>{tx.tcUsdMxnLbl||"T.C. USD → MXN"}</label>
-            <input type="number" style={inp} min={1} step={0.01} value={datos.config.tc||17.5}
-              onChange={e=>actualizarDatos({ config:{...datos.config,tc:parseFloat(e.target.value)||17.5} })}/>
           </div>
           <div>
             <label style={label}>{tx.idiomaSistema||"Idioma del sistema y PDF"}</label>
@@ -1599,8 +1629,22 @@ function PestanaConfig({ datos, actualizarDatos, t, tamFuente, lang, setIdiomaAc
             </select>
           </div>
         </div>
-        <ActualizarTC t={t} tamFuente={tamFuente} tcActual={datos.config.tc||17.5} lang={lang}
-          onActualizar={(nuevoTC: number) => actualizarDatos({ config:{...datos.config, tc:nuevoTC} })}/>
+        <ActualizarTC t={t} tamFuente={tamFuente} tasas={datos.config.tasas||TASAS_DEFECTO} lang={lang}
+          onActualizar={(nuevasTasas: Record<string,number>) => actualizarDatos({ config:{...datos.config, tasas:nuevasTasas} })}/>
+        <div style={{ marginTop:14 }}>
+          <div style={{ fontSize:12, fontWeight:600, color:t.text, marginBottom:4 }}>{tx.tasasManualTitulo||"Otras monedas (ajuste manual, 1 USD →)"}</div>
+          <div style={{ fontSize:11, color:t.textSub, marginBottom:10 }}>{tx.tasasManualNota||"Estas monedas no las cubre la API gratuita — actualízalas a mano cuando cambie el tipo de cambio."}</div>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:10 }}>
+            {Object.keys(MONEDAS).filter(c=>!FRANKFURTER_SOPORTADAS.has(c) && c!=="USD").map(c=>(
+              <div key={c}>
+                <label style={label}>{MONEDAS[c]?.flag} {c}</label>
+                <input type="number" style={inp} min={0} step={0.0001}
+                  value={datos.config.tasas?.[c] ?? TASAS_DEFECTO[c] ?? 1}
+                  onChange={e=>actualizarDatos({ config:{...datos.config, tasas:{...(datos.config.tasas||TASAS_DEFECTO), [c]:Number(e.target.value)||0} } })}/>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Apariencia */}
