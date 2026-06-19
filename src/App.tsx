@@ -80,6 +80,24 @@ async function fetchTasaUSD(monedaId: string): Promise<number> {
 }
 
 
+// ─── UNIDADES POR PARTIDA (seleccionables, localizadas) ──────────────────────
+const UNIDADES_OPCIONES = [
+  { code:"pza",      es:"pza",     en:"pcs",  pt:"pç" },
+  { code:"lote",     es:"lote",    en:"lot",  pt:"lote" },
+  { code:"conjunto", es:"conjunto",en:"set",  pt:"conjunto" },
+  { code:"kg",       es:"kg",      en:"kg",   pt:"kg" },
+  { code:"hr",       es:"hr",      en:"hr",   pt:"h" },
+  { code:"m",        es:"m",       en:"m",    pt:"m" },
+  { code:"ft",       es:"ft",      en:"ft",   pt:"ft" },
+  { code:"pulg",     es:"pulg",    en:"in",   pt:"pol" },
+  { code:"m2",       es:"m²",      en:"m²",   pt:"m²" },
+];
+function labelUnidad(code: string, idioma: string) {
+  const l = (idioma==="en"||idioma==="pt") ? idioma : "es";
+  const u = UNIDADES_OPCIONES.find(u=>u.code===(code||"pza"));
+  return u ? (u as any)[l] : code;
+}
+
 // ─── DATOS INICIALES (localizados según idioma elegido por el usuario) ───────
 const IMPUESTO_DEFECTO: Record<string,{nombre:string;pct:number}> = {
   es:{ nombre:"IVA", pct:16 }, en:{ nombre:"Sales Tax", pct:16 }, pt:{ nombre:"ICMS", pct:16 },
@@ -319,7 +337,7 @@ export default function CotizadorProEstandar() {
       if (data && !error) {
         const base = crearDatosIniciales(idiomaActivo);
         const cfgGuardado = data.datos?.config || {};
-        setDatos({ ...base, ...data.datos, config: { ...base.config, ...cfgGuardado, tasas: tasasDesdeConfig(cfgGuardado) } });
+        setDatos({ ...base, ...data.datos, config: { ...base.config, ...cfgGuardado, idioma: idiomaActivo, tasas: tasasDesdeConfig(cfgGuardado) } });
       } else {
         // Cuenta nueva, sin fila guardada todavía: usar valores localizados al idioma activo
         setDatos(crearDatosIniciales(idiomaActivo));
@@ -473,9 +491,9 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, lang, cotEnEdici
   const [buscaCli,        setBuscaCli]        = useState("");
   const [moneda,          setMoneda]          = useState(cot?.config?.moneda || datos.config?.moneda || "MXN");
   const [tasas,           setTasas]            = useState<Record<string,number>>(tasasDesdeConfig(cot?.config || datos.config));
-  const [idioma,          setIdioma]          = useState(cot?.config?.idioma || datos.config?.idioma || "es");
+  const [idioma,          setIdioma]          = useState(cot?.config?.idioma || lang || datos.config?.idioma || "es");
 
-  function nuevaLinea() { return { id: Date.now() + Math.random(), nombrePartida:"", proceso:"", material:"", kg:0, horas:0, cantidad:1 }; }
+  function nuevaLinea() { return { id: Date.now() + Math.random(), nombrePartida:"", proceso:"", material:"", kg:0, horas:0, cantidad:1, unidad:"pza" }; }
 
   const { pctGD, pctSGV, pctMargen } = datos.config;
   let totalLabor = 0, totalMaterial = 0;
@@ -729,11 +747,17 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, lang, cotEnEdici
                 <div style={{ fontSize:10, fontWeight:700, color:t.textSub, textTransform:"uppercase" as const, letterSpacing:"0.07em", marginBottom:10 }}>
                   {tx.detalleInterno||"Detalle interno del taller"}
                 </div>
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 2fr 2fr 1fr 1fr", gap:10, marginBottom:10 }}>
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 2fr 2fr 1fr 1fr", gap:10, marginBottom:10 }}>
                   <div>
                     <div style={{ fontSize:11, color:t.textSub, marginBottom:4 }}>{tx.cantidadLbl||"Cantidad"}</div>
                     <input type="number" style={{...inp, fontWeight:700, borderColor:t.accent}} value={l.cantidad||1} min={1} step={1}
                       onChange={e=>cambiarLinea(l.id,"cantidad",parseInt(e.target.value)||1)}/>
+                  </div>
+                  <div>
+                    <div style={{ fontSize:11, color:t.textSub, marginBottom:4 }}>{tx.unidadLbl||"Unidad"}</div>
+                    <select style={inp} value={l.unidad||"pza"} onChange={e=>cambiarLinea(l.id,"unidad",e.target.value)}>
+                      {UNIDADES_OPCIONES.map(u=><option key={u.code} value={u.code}>{labelUnidad(u.code, lang)}</option>)}
+                    </select>
                   </div>
                   <div>
                     <div style={{ fontSize:11, color:t.textSub, marginBottom:4 }}>{tx.proceso||"Proceso"}</div>
@@ -1142,8 +1166,8 @@ function VistaPDF({ datos, lineasCalc, res, extras, folio, descripcion, nota, cl
                   <td style={estilosComunes.td}>
                     <div style={{ fontWeight:600, fontSize:14 }}>{nombreMostrar}</div>
                   </td>
-                  <td style={{ ...estilosComunes.td, textAlign:"center" as const, fontWeight:600 }}>1</td>
-                  <td style={{ ...estilosComunes.td, color:"#64748b" }}>{txPDF.unidadPzaLbl||"pza"}</td>
+                  <td style={{ ...estilosComunes.td, textAlign:"center" as const, fontWeight:600 }}>{l.cantidad||1}</td>
+                  <td style={{ ...estilosComunes.td, color:"#64748b" }}>{labelUnidad(l.unidad, idioma)}</td>
                   <td style={{ ...estilosComunes.td, textAlign:"right" as const, color:"#5a6278" }}>{fmt2(precioClientePartida)}</td>
                   <td style={{ ...estilosComunes.td, textAlign:"right" as const, fontWeight:700, fontSize:14 }}>{fmt2(precioClientePartida)}</td>
                 </tr>
@@ -1453,18 +1477,18 @@ function ActualizarTC({ t, tamFuente, tasas, onActualizar, lang }: any) {
 }
 
 const IMPUESTO_PRESETS = [
-  { pais:{es:"México",en:"Mexico",pt:"México"},                       nombre:"IVA",      pct:16, activo:true },
-  { pais:{es:"Estados Unidos",en:"United States",pt:"Estados Unidos"}, nombre:"Sales Tax", pct:7,  activo:true },
-  { pais:{es:"Canadá",en:"Canada",pt:"Canadá"},                        nombre:"GST/HST",  pct:13, activo:true },
-  { pais:{es:"España",en:"Spain",pt:"Espanha"},                        nombre:"IVA",      pct:21, activo:true },
-  { pais:{es:"Alemania",en:"Germany",pt:"Alemanha"},                   nombre:"VAT",      pct:19, activo:true },
-  { pais:{es:"Reino Unido",en:"United Kingdom",pt:"Reino Unido"},      nombre:"VAT",      pct:20, activo:true },
-  { pais:{es:"Colombia",en:"Colombia",pt:"Colômbia"},                  nombre:"IVA",      pct:19, activo:true },
-  { pais:{es:"Chile",en:"Chile",pt:"Chile"},                           nombre:"IVA",      pct:19, activo:true },
-  { pais:{es:"Argentina",en:"Argentina",pt:"Argentina"},               nombre:"IVA",      pct:21, activo:true },
-  { pais:{es:"Perú",en:"Peru",pt:"Peru"},                              nombre:"IGV",      pct:18, activo:true },
-  { pais:{es:"Brasil",en:"Brazil",pt:"Brasil"},                        nombre:"ICMS",     pct:18, activo:true },
-  { pais:{es:"Exportación / Sin impuesto",en:"Export / No tax",pt:"Exportação / Sem imposto"}, nombre:"", pct:0, activo:false },
+  { pais:{es:"México",en:"Mexico",pt:"México"},                       nombre:"IVA",      pct:16, activo:true, moneda:"MXN" },
+  { pais:{es:"Estados Unidos",en:"United States",pt:"Estados Unidos"}, nombre:"Sales Tax", pct:7,  activo:true, moneda:"USD" },
+  { pais:{es:"Canadá",en:"Canada",pt:"Canadá"},                        nombre:"GST/HST",  pct:13, activo:true, moneda:"CAD" },
+  { pais:{es:"España",en:"Spain",pt:"Espanha"},                        nombre:"IVA",      pct:21, activo:true, moneda:"EUR" },
+  { pais:{es:"Alemania",en:"Germany",pt:"Alemanha"},                   nombre:"VAT",      pct:19, activo:true, moneda:"EUR" },
+  { pais:{es:"Reino Unido",en:"United Kingdom",pt:"Reino Unido"},      nombre:"VAT",      pct:20, activo:true, moneda:"GBP" },
+  { pais:{es:"Colombia",en:"Colombia",pt:"Colômbia"},                  nombre:"IVA",      pct:19, activo:true, moneda:"COP" },
+  { pais:{es:"Chile",en:"Chile",pt:"Chile"},                           nombre:"IVA",      pct:19, activo:true, moneda:"CLP" },
+  { pais:{es:"Argentina",en:"Argentina",pt:"Argentina"},               nombre:"IVA",      pct:21, activo:true, moneda:"ARS" },
+  { pais:{es:"Perú",en:"Peru",pt:"Peru"},                              nombre:"IGV",      pct:18, activo:true, moneda:"PEN" },
+  { pais:{es:"Brasil",en:"Brazil",pt:"Brasil"},                        nombre:"ICMS",     pct:18, activo:true, moneda:"BRL" },
+  { pais:{es:"Exportación / Sin impuesto",en:"Export / No tax",pt:"Exportação / Sem imposto"}, nombre:"", pct:0, activo:false, moneda:null },
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -1472,6 +1496,7 @@ const IMPUESTO_PRESETS = [
 // ═══════════════════════════════════════════════════════════════════════════════
 function PestanaConfig({ datos, actualizarDatos, t, tamFuente, lang, setIdiomaActivo }: any) {
   const tx = getT(lang);
+  const [presetPaisSel, setPresetPaisSel] = useState("");
   const inp   = { background:t.input, border:`1px solid ${t.border}`, borderRadius:8, padding:"9px 12px", color:t.text, fontSize:tamFuente, width:"100%", outline:"none" };
   const label = { fontSize:tamFuente-1, color:t.textSub, marginBottom:6, display:"block" };
   const card  = { background:t.card, borderRadius:12, border:`1px solid ${t.border}`, padding:24, marginBottom:20 };
@@ -1566,11 +1591,12 @@ function PestanaConfig({ datos, actualizarDatos, t, tamFuente, lang, setIdiomaAc
         </div>
         <div style={{ marginBottom:14 }}>
           <label style={label}>{tx.impuestoPresetLbl||"Plantilla rápida (opcional)"}</label>
-          <select style={inp} value="" onChange={e=>{
+          <select style={inp} value={presetPaisSel} onChange={e=>{
             const idx = parseInt(e.target.value);
             if (Number.isNaN(idx)) return;
+            setPresetPaisSel(e.target.value);
             const p = IMPUESTO_PRESETS[idx];
-            actualizarDatos({ config:{...datos.config, impuestoNombre:p.nombre||datos.config?.impuestoNombre||"IVA", impuestoPct:p.pct, impuestoActivo:p.activo} });
+            actualizarDatos({ config:{...datos.config, impuestoNombre:p.nombre||datos.config?.impuestoNombre||"IVA", impuestoPct:p.pct, impuestoActivo:p.activo, moneda:p.moneda||datos.config?.moneda||"MXN"} });
           }}>
             <option value="">{tx.impuestoPresetPlaceholder||"Selecciona tu país…"}</option>
             {IMPUESTO_PRESETS.map((p,i)=>(
