@@ -108,9 +108,9 @@ function PantallaLogin({ onLang }: { onLang: (l: string) => void }) {
   const t = { card:"#1a1d27", border:"#2a2d3e", text:"#e8eaf0", textSub:"#8b8fa8",
     accent:"#4f6ef7", success:"#22c55e", danger:"#ef4444", input:"#12151f" };
   const LX: Record<string,any> = {
-    es:{sub:"Estándar — Sistema de Cotización Industrial",noAcc:"¿No tienes cuenta?",link:"Adquiere tu licencia aquí →",tab1:"Iniciar sesión",tab2:"Registrarse",em:"Correo electrónico",pw:"Contraseña (mínimo 6 caracteres)",b1:"Entrar",b2:"Crear cuenta",b3:"Enviar enlace",proc:"Procesando...",fgt:"¿Olvidaste tu contraseña?",back:"← Volver",rst:"Ingresa tu correo para recibir el enlace.",ep:"Correo o contraseña incorrectos.",okReg:"¡Cuenta creada! Revisa tu correo.",okRst:"Te enviamos el enlace."},
-    en:{sub:"Standard — Industrial Quoting System",noAcc:"Don't have an account?",link:"Get your license here →",tab1:"Sign in",tab2:"Sign up",em:"Email address",pw:"Password (min. 6 characters)",b1:"Sign in",b2:"Create account",b3:"Send link",proc:"Processing...",fgt:"Forgot your password?",back:"← Back",rst:"Enter your email to receive a reset link.",ep:"Incorrect email or password.",okReg:"Account created! Check your email.",okRst:"We sent you a reset link."},
-    pt:{sub:"Padrão — Sistema de Cotação Industrial",noAcc:"Não tem uma conta?",link:"Adquira sua licença aqui →",tab1:"Entrar",tab2:"Cadastrar",em:"E-mail",pw:"Senha (mín. 6 caracteres)",b1:"Entrar",b2:"Criar conta",b3:"Enviar link",proc:"Processando...",fgt:"Esqueceu sua senha?",back:"← Voltar",rst:"Digite seu e-mail para receber o link.",ep:"E-mail ou senha incorretos.",okReg:"Conta criada! Verifique seu e-mail.",okRst:"Enviamos o link para seu e-mail."},
+    es:{sub:"Starter — Sistema de Cotización Industrial",noAcc:"¿No tienes cuenta?",link:"Adquiere tu licencia aquí →",tab1:"Iniciar sesión",tab2:"Registrarse",em:"Correo electrónico",pw:"Contraseña (mínimo 6 caracteres)",b1:"Entrar",b2:"Crear cuenta",b3:"Enviar enlace",proc:"Procesando...",fgt:"¿Olvidaste tu contraseña?",back:"← Volver",rst:"Ingresa tu correo para recibir el enlace.",ep:"Correo o contraseña incorrectos.",okReg:"¡Cuenta creada! Revisa tu correo.",okRst:"Te enviamos el enlace."},
+    en:{sub:"Starter — Industrial Quoting System",noAcc:"Don't have an account?",link:"Get your license here →",tab1:"Sign in",tab2:"Sign up",em:"Email address",pw:"Password (min. 6 characters)",b1:"Sign in",b2:"Create account",b3:"Send link",proc:"Processing...",fgt:"Forgot your password?",back:"← Back",rst:"Enter your email to receive a reset link.",ep:"Incorrect email or password.",okReg:"Account created! Check your email.",okRst:"We sent you a reset link."},
+    pt:{sub:"Starter — Sistema de Cotação Industrial",noAcc:"Não tem uma conta?",link:"Adquira sua licença aqui →",tab1:"Entrar",tab2:"Cadastrar",em:"E-mail",pw:"Senha (mín. 6 caracteres)",b1:"Entrar",b2:"Criar conta",b3:"Enviar link",proc:"Processando...",fgt:"Esqueceu sua senha?",back:"← Voltar",rst:"Digite seu e-mail para receber o link.",ep:"E-mail ou senha incorretos.",okReg:"Conta criada! Verifique seu e-mail.",okRst:"Enviamos o link para seu e-mail."},
   };
   const lx = LX[lang] || LX.es;
   function setL(l:"es"|"en"|"pt"){setLang(l);setMsg(null);try{localStorage.setItem("cot_lang",l);}catch{}}
@@ -124,7 +124,7 @@ function PantallaLogin({ onLang }: { onLang: (l: string) => void }) {
     } catch (err) { console.error("[LOGIN] Error guardando:", err); }
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     console.log("[LOGIN] Despues de Supabase, localStorage:", localStorage.getItem("cot_lang"));
-    if (error) { setMsg({ tipo:"error", texto:"Correo o contraseña incorrectos." }); setCarg(false); }
+    if (error) { setMsg({ tipo:"error", texto: lx.ep }); setCarg(false); }
     setCarg(false);
   }
   async function handleRegistro(e: any) {
@@ -132,14 +132,14 @@ function PantallaLogin({ onLang }: { onLang: (l: string) => void }) {
     try { localStorage.setItem("cot_lang", lang); } catch {}
     const { error } = await supabase.auth.signUp({ email, password });
     if (error) setMsg({ tipo:"error", texto: error.message });
-    else setMsg({ tipo:"ok", texto:"¡Cuenta creada! Revisa tu correo para confirmar." });
+    else setMsg({ tipo:"ok", texto: lx.okReg });
     setCarg(false);
   }
   async function handleReset(e: any) {
     e.preventDefault(); setCarg(true); setMsg(null);
     const { error } = await supabase.auth.resetPasswordForEmail(email);
     if (error) setMsg({ tipo:"error", texto: error.message });
-    else setMsg({ tipo:"ok", texto:"Te enviamos un enlace para restablecer tu contraseña." });
+    else setMsg({ tipo:"ok", texto: lx.okRst });
     setCarg(false);
   }
 
@@ -158,7 +158,7 @@ function PantallaLogin({ onLang }: { onLang: (l: string) => void }) {
         </div>
         <div style={{ textAlign:"center", marginBottom:32 }}>
           <div style={{ display:"inline-flex", alignItems:"center", justifyContent:"center", width:56, height:56, borderRadius:14, background:t.accent, marginBottom:16, fontSize:26 }}>⚙️</div>
-          <div style={{ fontSize:22, fontWeight:800, color:t.text }}>CotizadorPRO</div>
+          <div style={{ fontSize:22, fontWeight:800, color:t.text }}>MachX</div>
           <div style={{ fontSize:13, color:t.textSub, marginTop:4 }}>{lx.sub}</div>
           <div style={{ fontSize:11, color:"#475569", marginTop:8, lineHeight:1.5 }}>
             {lx.noAcc}{" "}
@@ -272,7 +272,7 @@ export default function CotizadorProEstandar() {
 
   if (cargandoSesion) return (
     <div style={{ minHeight:"100vh", background:"#0f1117", display:"flex", alignItems:"center", justifyContent:"center" }}>
-      <div style={{ color:"#4f6ef7", fontSize:18, fontFamily:"IBM Plex Sans,sans-serif" }}>Cargando CotizadorPRO…</div>
+      <div style={{ color:"#4f6ef7", fontSize:18, fontFamily:"IBM Plex Sans,sans-serif" }}>Cargando MachX…</div>
     </div>
   );
 
@@ -324,8 +324,8 @@ export default function CotizadorProEstandar() {
             : <div style={{ width:36, height:36, borderRadius:8, background:t.accent, display:"flex", alignItems:"center", justifyContent:"center", fontSize:18 }}>⚙️</div>
           }
           <div>
-            <div style={{ fontWeight:800, fontSize:15, color:t.text }}>{datos.taller.nombre||"CotizadorPRO"}</div>
-            <div style={{ fontSize:11, color:t.textSub }}>Estándar · {sesion.user.email}</div>
+            <div style={{ fontWeight:800, fontSize:15, color:t.text }}>{datos.taller.nombre||"MachX"}</div>
+            <div style={{ fontSize:11, color:t.textSub }}>MachX Starter · {sesion.user.email}</div>
           </div>
         </div>
         <div style={{ display:"flex", alignItems:"center", gap:12 }}>
@@ -389,7 +389,7 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, lang, cotEnEdici
   const [extras,          setExtras]          = useState(cot?.extras||0);
   const [nota,            setNota]            = useState(cot?.nota||"");
   const [entrega,         setEntrega]         = useState(cot?.cond?.entrega||"");
-  const [pago,            setPago]            = useState(cot?.cond?.pago||"Anticipo 50% / Liquidación a entrega");
+  const [pago,            setPago]            = useState(cot?.cond?.pago||tx.pagoPorDefecto);
   const [validez,         setValidez]         = useState(cot?.cond?.validez||30);
   const [showVistaCliente,setShowVistaCliente]= useState(false);
   const [showSelectorCli, setShowSelectorCli] = useState(false);
@@ -442,11 +442,11 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, lang, cotEnEdici
       nuevosClientes = [...clientes, { ...datosCliente, id: Date.now(), creadoEn: new Date().toLocaleDateString("es-MX") }];
     }
     actualizarDatos({ clientes: nuevosClientes });
-    mostrarNotif("Cliente guardado en catálogo.", "ok");
+    mostrarNotif(tx.notifClienteGuardado||"Cliente guardado en catálogo.", "ok");
   }
 
   function guardarCotizacion() {
-    if (!clienteEmpresa && !clienteNombre) { mostrarNotif("Agrega al menos el nombre o empresa del cliente.", "warn"); return; }
+    if (!clienteEmpresa && !clienteNombre) { mostrarNotif(tx.notifClienteIncompleto||"Agrega al menos el nombre o empresa del cliente.", "warn"); return; }
     const nueva = {
       id: (modoEdicion === "mismo" && cot) ? cot.id : Date.now(),
       folio, descripcion,
@@ -484,8 +484,8 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, lang, cotEnEdici
     setFolio(generarFolio(configActualizado, nuevasCots));
     setClienteNombre(""); setClienteEmpresa(""); setClienteEmail(""); setClienteTel(""); setClienteCiudad("");
     setClienteRFC(""); setClienteRazon(""); setClienteDirFiscal("");
-    setDescripcion(""); setLineas([nuevaLinea()]); setExtras(0); setNota(""); setEntrega(""); setPago("Anticipo 50% / Liquidación a entrega");
-    mostrarNotif(modoEdicion==="mismo" ? "Cotización actualizada correctamente." : "Cotización guardada correctamente.", "ok");
+    setDescripcion(""); setLineas([nuevaLinea()]); setExtras(0); setNota(""); setEntrega(""); setPago(tx.pagoPorDefecto);
+    mostrarNotif(modoEdicion==="mismo" ? (tx.notifCotActualizada||"Cotización actualizada correctamente.") : (tx.notifCotGuardada||"Cotización guardada correctamente."), "ok");
   }
 
   const card  = { background:t.card, borderRadius:12, border:`1px solid ${t.border}`, padding:20, marginBottom:20 };
@@ -510,14 +510,14 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, lang, cotEnEdici
         <div style={{ background: modoEdicion==="mismo"?"#1e3a5f":"#14532d", borderRadius:10, padding:"12px 18px", marginBottom:16, display:"flex", alignItems:"center", justifyContent:"space-between", border:`1px solid ${modoEdicion==="mismo"?"#3b82f6":"#22c55e"}` }}>
           <div>
             <span style={{ fontWeight:700, color: modoEdicion==="mismo"?"#60a5fa":"#4ade80", fontSize:13 }}>
-              {modoEdicion==="mismo" ? "✏️ Editando cotización existente" : "🆕 Nueva versión basada en cotización existente"}
+              {modoEdicion==="mismo" ? (tx.bannerEditando||"✏️ Editando cotización existente") : (tx.bannerNuevaVersion||"🆕 Nueva versión basada en cotización existente")}
             </span>
             <span style={{ color:"#94a3b8", fontSize:12, marginLeft:10 }}>
-              {modoEdicion==="mismo" ? `Folio: ${cot?.folio} — se reemplazará al guardar` : `Original: ${cot?.folio} → Nueva: ${folio}`}
+              {modoEdicion==="mismo" ? (tx.bannerFolioReemplaza||"Folio: {folio} — se reemplazará al guardar").replace("{folio}", String(cot?.folio)) : (tx.bannerOriginalNuevo||"Original: {original} → Nueva: {nueva}").replace("{original}", String(cot?.folio)).replace("{nueva}", String(folio))}
             </span>
           </div>
           <button onClick={()=>{ onLimpiarEdicion?.(); }} style={{ background:"none", border:"none", color:"#94a3b8", cursor:"pointer", fontSize:12, padding:"4px 8px", borderRadius:6 }}>
-            ✕ Cancelar edición
+            {tx.btnCancelarEdicion||"✕ Cancelar edición"}
           </button>
         </div>
       )}
@@ -526,7 +526,7 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, lang, cotEnEdici
       {showSelectorCli && (
         <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.6)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:200 }} onClick={()=>setShowSelectorCli(false)}>
           <div style={{ background:t.card, borderRadius:14, padding:28, width:520, maxHeight:"80vh", display:"flex", flexDirection:"column", border:`1px solid ${t.border}` }} onClick={(e:any)=>e.stopPropagation()}>
-            <div style={{ fontWeight:700, fontSize:16, color:t.text, marginBottom:14 }}>👥 Seleccionar cliente</div>
+            <div style={{ fontWeight:700, fontSize:16, color:t.text, marginBottom:14 }}>{tx.seleccionarClienteLbl||"👥 Seleccionar cliente"}</div>
             <input style={{ ...inp, marginBottom:12 }} placeholder={tx.phBuscar||"Buscar…"} value={buscaCli} onChange={e=>setBuscaCli(e.target.value)} />
             <div style={{ overflowY:"auto", flex:1 }}>
               {(datos.clientes||[]).length === 0
@@ -536,7 +536,7 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, lang, cotEnEdici
                     return !q || (c.empresa||"").toLowerCase().includes(q) || (c.nombre||"").toLowerCase().includes(q);
                   }).map((c: any) => (
                     <div key={c.id} onClick={()=>cargarCliente(c)} style={{ padding:"12px 14px", borderRadius:8, border:`1px solid ${t.border}`, marginBottom:8, cursor:"pointer", background:t.input }}>
-                      <div style={{ fontWeight:600, color:t.text }}>{c.empresa||"Sin empresa"}</div>
+                      <div style={{ fontWeight:600, color:t.text }}>{c.empresa||tx.sinEmpresaLbl||"Sin empresa"}</div>
                       {c.nombre && <div style={{ fontSize:12, color:t.textSub }}>{c.nombre}</div>}
                       {c.rfc    && <div style={{ fontSize:11, color:t.textSub }}>RFC: {c.rfc}</div>}
                       {c.ciudad && <div style={{ fontSize:11, color:t.textSub }}>{c.ciudad}</div>}
@@ -544,7 +544,7 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, lang, cotEnEdici
                   ))
               }
             </div>
-            <button onClick={()=>setShowSelectorCli(false)} style={{ marginTop:14, padding:"8px", borderRadius:8, border:`1px solid ${t.border}`, background:"transparent", color:t.textSub, cursor:"pointer" }}>Cerrar</button>
+            <button onClick={()=>setShowSelectorCli(false)} style={{ marginTop:14, padding:"8px", borderRadius:8, border:`1px solid ${t.border}`, background:"transparent", color:t.textSub, cursor:"pointer" }}>{tx.cerrarBtn||"Cerrar"}</button>
           </div>
         </div>
       )}
@@ -562,7 +562,7 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, lang, cotEnEdici
           <div><label style={label}>{tx.contacto||"Contacto"}</label><input style={inp} value={clienteNombre} onChange={e=>setClienteNombre(e.target.value)} placeholder={tx.phContacto||"Nombre del contacto"}/></div>
           <div><label style={label}>{tx.email||"Email"}</label><input style={inp} value={clienteEmail} onChange={e=>setClienteEmail(e.target.value)} placeholder={tx.phEmail||"correo@empresa.com"}/></div>
           <div><label style={label}>{tx.telefono||"Teléfono"}</label><input style={inp} value={clienteTel} onChange={e=>setClienteTel(e.target.value)} placeholder={tx.phTel||"+52 899 000 0000"}/></div>
-          <div><label style={label}>{tx.ciudad||"Ciudad"}</label><input style={inp} value={clienteCiudad} onChange={e=>setClienteCiudad(e.target.value)} placeholder="Reynosa, Tamps."/></div>
+          <div><label style={label}>{tx.ciudad||"Ciudad"}</label><input style={inp} value={clienteCiudad} onChange={e=>setClienteCiudad(e.target.value)} placeholder={tx.phCiudad||"Ciudad"}/></div>
         </div>
         {/* Datos fiscales */}
         <div style={{ background:t.input, borderRadius:8, padding:14, marginBottom:8 }}>
@@ -575,7 +575,7 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, lang, cotEnEdici
         </div>
         {clienteEmpresa && (
           <button onClick={guardarClienteEnCatalogo} style={{ fontSize:12, padding:"5px 12px", borderRadius:7, border:`1px solid ${t.success}`, background:"transparent", color:t.success, cursor:"pointer" }}>
-            💾 Guardar en catálogo de clientes
+            {tx.guardarEnCatalogoBtn||"💾 Guardar en catálogo de clientes"}
           </button>
         )}
       </div>
@@ -587,7 +587,7 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, lang, cotEnEdici
           <div><label style={label}>{tx.folio||"Folio"}</label><input style={inp} value={folio} onChange={e=>setFolio(e.target.value)}/></div>
           <div><label style={label}>{tx.validez||"Validez"}</label>
             <select style={inp} value={validez} onChange={e=>setValidez(Number(e.target.value))}>
-              {[15,30,60,90].map(d=><option key={d} value={d}>{d} días</option>)}
+              {[15,30,60,90].map(d=><option key={d} value={d}>{d} {tx.dias||"días"}</option>)}
             </select>
           </div>
           <div><label style={label}>{tx.monedaLbl||"Moneda"}</label>
@@ -595,9 +595,9 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, lang, cotEnEdici
               {Object.values(MONEDAS).map(m=><option key={m.id} value={m.id}>{m.flag} {m.id} — {m.label}</option>)}
             </select>
           </div>
-          <div><label style={label}>Tiempo de Entrega</label><input style={inp} value={entrega} onChange={e=>setEntrega(e.target.value)} placeholder={tx.phEntrega||"Ej: 10 días hábiles"}/></div>
-          <div><label style={label}>Condiciones de Pago</label><input style={inp} value={pago} onChange={e=>setPago(e.target.value)}/></div>
-          <div><label style={label}>Idioma del PDF</label>
+          <div><label style={label}>{tx.tiempoEntregaLbl||"Tiempo de Entrega"}</label><input style={inp} value={entrega} onChange={e=>setEntrega(e.target.value)} placeholder={tx.phEntrega||"Ej: 10 días hábiles"}/></div>
+          <div><label style={label}>{tx.condicionesPagoLbl||"Condiciones de Pago"}</label><input style={inp} value={pago} onChange={e=>setPago(e.target.value)}/></div>
+          <div><label style={label}>{tx.idiomaPDFLbl||"Idioma del PDF"}</label>
             <select style={inp} value={idioma} onChange={e=>setIdioma(e.target.value)}>
               <option value="es">🇲🇽 Español</option>
               <option value="en">🇺🇸 English</option>
@@ -631,12 +631,12 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, lang, cotEnEdici
                 </span>
                 <input
                   value={l.nombrePartida||""}
-                  placeholder={`Ej: Perno M12, Eje de transmisión, Soporte...`}
+                  placeholder={tx.phNombrePartida||"Ej: Perno M12, Eje de transmisión, Soporte..."}
                   onChange={e=>cambiarLinea(l.id,"nombrePartida",e.target.value)}
                   style={{ flex:1, background:"rgba(255,255,255,0.15)", border:"1px solid rgba(255,255,255,0.3)", borderRadius:6, padding:"6px 12px", color:"white", fontSize:tamFuente, fontWeight:700, outline:"none" }}
                 />
                 <span style={{ fontSize:10, color:"rgba(255,255,255,0.6)", whiteSpace:"nowrap" as const }}>
-                  → aparece en PDF del cliente
+                  {tx.notaAparecePDF||"→ aparece en PDF del cliente"}
                 </span>
                 <button onClick={()=>eliminarLinea(l.id)}
                   style={{ background:"rgba(255,255,255,0.15)", border:"none", color:"white", cursor:"pointer", borderRadius:5, padding:"3px 8px", fontSize:14, lineHeight:1 }}>
@@ -651,7 +651,7 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, lang, cotEnEdici
                 </div>
                 <div style={{ display:"grid", gridTemplateColumns:"1fr 2fr 2fr 1fr 1fr", gap:10, marginBottom:10 }}>
                   <div>
-                    <div style={{ fontSize:11, color:t.textSub, marginBottom:4 }}>Cantidad</div>
+                    <div style={{ fontSize:11, color:t.textSub, marginBottom:4 }}>{tx.cantidadLbl||"Cantidad"}</div>
                     <input type="number" style={{...inp, fontWeight:700, borderColor:t.accent}} value={l.cantidad||1} min={1} step={1}
                       onChange={e=>cambiarLinea(l.id,"cantidad",parseInt(e.target.value)||1)}/>
                   </div>
@@ -670,22 +670,22 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, lang, cotEnEdici
                     </select>
                   </div>
                   <div>
-                    <div style={{ fontSize:11, color:t.textSub, marginBottom:4 }}>Horas c/u</div>
+                    <div style={{ fontSize:11, color:t.textSub, marginBottom:4 }}>{tx.horasCu||"Horas c/u"}</div>
                     <input type="number" style={inp} value={l.horas} min={0} step={0.25}
                       onChange={e=>cambiarLinea(l.id,"horas",parseFloat(e.target.value)||0)}/>
                   </div>
                   <div>
-                    <div style={{ fontSize:11, color:t.textSub, marginBottom:4 }}>Kg c/u</div>
+                    <div style={{ fontSize:11, color:t.textSub, marginBottom:4 }}>{tx.kgCu||"Kg c/u"}</div>
                     <input type="number" style={inp} value={l.kg} min={0} step={0.1}
                       onChange={e=>cambiarLinea(l.id,"kg",parseFloat(e.target.value)||0)}/>
                   </div>
                 </div>
                 {/* Subtotales de la partida */}
                 <div style={{ display:"flex", gap:16, fontSize:12, color:t.textSub, borderTop:`1px solid ${t.border}`, paddingTop:8 }}>
-                  <span>Labor: <strong style={{ color:t.text }}>{fmtMXN(lc.labor)}</strong></span>
-                  <span>Material: <strong style={{ color:t.text }}>{fmtMXN(lc.costoMat)}</strong></span>
+                  <span>{tx.laborColonLbl||"Labor:"} <strong style={{ color:t.text }}>{fmtMXN(lc.labor)}</strong></span>
+                  <span>{tx.materialLbl||"Material"}: <strong style={{ color:t.text }}>{fmtMXN(lc.costoMat)}</strong></span>
                   <span style={{ marginLeft:"auto", fontWeight:700, color:t.text, fontSize:tamFuente }}>
-                    Subtotal: {fmtMXN(lc.subtotal)}
+                    {tx.subtotal||"Subtotal"}: {fmtMXN(lc.subtotal)}
                   </span>
                 </div>
               </div>
@@ -697,10 +697,10 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, lang, cotEnEdici
 
         <div style={{ display:"flex", gap:12, marginTop:14, alignItems:"center", flexWrap:"wrap" as const }}>
           <button onClick={agregarLinea} style={{ padding:"9px 18px", borderRadius:8, border:`2px dashed ${t.accent}`, background:"transparent", color:t.accent, cursor:"pointer", fontSize:tamFuente, fontWeight:600 }}>
-            + Agregar partida
+            {tx.agregarPartidaBtn||"+ Agregar partida"}
           </button>
           <div style={{ display:"flex", alignItems:"center", gap:8, marginLeft:"auto" }}>
-            <label style={{ ...label, margin:0 }}>Extras / Fletes:</label>
+            <label style={{ ...label, margin:0 }}>{tx.extrasFletesInputLbl||"Extras / Fletes:"}</label>
             <input type="number" style={{ ...inp, width:130 }} value={extras} min={0}
               onChange={e=>setExtras(Number(e.target.value))}/>
           </div>
@@ -712,13 +712,13 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, lang, cotEnEdici
         <div style={card}>
           <div style={{ fontWeight:700, marginBottom:14, fontSize:tamFuente+1 }}>{`📊 ${tx.desglose||"Desglose de costos"}`}</div>
           {[
-            ["Labor total",               totalLabor],
-            ["Material total",            totalMaterial],
-            ["Extras / Fletes",           Number(extras)||0],
-            ["Costo Directo",             res.costoDirecto],
-            [`Gastos Directos (${pctGD}%)`,res.gastosDirectos],
-            [`Gastos SGV (${pctSGV}%)`,   res.gastosSGV],
-            ["Costo Empresa",             res.costoEmpresa],
+            [tx.laborTotal||"Labor total",               totalLabor],
+            [tx.materialTotalLbl||"Material total",       totalMaterial],
+            [tx.extrasFletesLinea||"Extras / Fletes",     Number(extras)||0],
+            [tx.costoDirectoLbl||"Costo Directo",         res.costoDirecto],
+            [`${tx.gastosDirectosLinea||"Gastos Directos"} (${pctGD}%)`,res.gastosDirectos],
+            [`${tx.gastosSGVLinea||"Gastos SGV"} (${pctSGV}%)`,   res.gastosSGV],
+            [tx.costoEmpresaLbl||"Costo Empresa",         res.costoEmpresa],
           ].map(([k,v])=>(
             <div key={String(k)} style={{ display:"flex", justifyContent:"space-between", padding:"7px 0", borderBottom:`1px solid ${t.border}`, fontSize:tamFuente }}>
               <span style={{ color:t.textSub }}>{k}</span><span>{fmtMXN(v as number)}</span>
@@ -728,15 +728,15 @@ function PestanaCotizar({ datos, actualizarDatos, t, tamFuente, lang, cotEnEdici
         <div style={card}>
           <div style={{ fontWeight:700, marginBottom:14, fontSize:tamFuente+1 }}>{`💰 ${tx.resultado||"Resultado"}`}</div>
           <div style={{ background:t.input, borderRadius:10, padding:20, marginBottom:16, textAlign:"center" }}>
-            <div style={{ fontSize:12, color:t.textSub, marginBottom:4 }}>PRECIO DE VENTA</div>
+            <div style={{ fontSize:12, color:t.textSub, marginBottom:4 }}>{tx.precioVentaLbl||"PRECIO DE VENTA"}</div>
             <div style={{ fontSize:36, fontWeight:800, color:t.accent }}>{fmt2(res.precioVenta)}</div>
             <div style={{ fontSize:12, color:t.textSub, marginTop:4 }}>{moneda}{moneda!=="MXN"?` · ${fmtMXN(res.precioVenta)} MXN`:""}</div>
           </div>
           <div style={{ display:"flex", justifyContent:"space-between", padding:"7px 0", borderBottom:`1px solid ${t.border}` }}>
-            <span style={{ color:t.textSub }}>Utilidad</span><span style={{ color:t.success, fontWeight:700 }}>{fmtMXN(res.utilidad)}</span>
+            <span style={{ color:t.textSub }}>{tx.utilidadLbl||"Utilidad"}</span><span style={{ color:t.success, fontWeight:700 }}>{fmtMXN(res.utilidad)}</span>
           </div>
           <div style={{ display:"flex", justifyContent:"space-between", padding:"7px 0", borderBottom:`1px solid ${t.border}` }}>
-            <span style={{ color:t.textSub }}>Margen real</span><span style={{ color:t.success, fontWeight:700 }}>{res.margenReal.toFixed(1)}%</span>
+            <span style={{ color:t.textSub }}>{tx.margenRealLbl||"Margen real"}</span><span style={{ color:t.success, fontWeight:700 }}>{res.margenReal.toFixed(1)}%</span>
           </div>
           {datos.config?.impuestoActivo !== false && (
             <div style={{ display:"flex", justifyContent:"space-between", padding:"7px 0", borderBottom:`1px solid ${t.border}` }}>
@@ -776,9 +776,9 @@ function PestanaLista({ datos, actualizarDatos, t, tamFuente, lang, onEditarComp
   const cots = datos.cotizaciones || [];
 
   function eliminar(id: number) {
-    if (!window.confirm("¿Eliminar esta cotización? Esta acción no se puede deshacer.")) return;
+    if (!window.confirm(tx.confirmEliminarCot||"¿Eliminar esta cotización? Esta acción no se puede deshacer.")) return;
     actualizarDatos({ cotizaciones: cots.filter((c: any) => c.id !== id) });
-    mostrarNotif("Cotización eliminada.", "warn");
+    mostrarNotif(tx.notifCotEliminada||"Cotización eliminada.", "warn");
   }
 
   if (showVista) return (
@@ -807,31 +807,31 @@ function PestanaLista({ datos, actualizarDatos, t, tamFuente, lang, onEditarComp
       <div style={{ textAlign:"center", marginBottom:32 }}>
         <div style={{ fontSize:44, marginBottom:12 }}>👋</div>
         <div style={{ fontSize:22, fontWeight:800, color:t.text, marginBottom:6 }}>
-          Bienvenido a CotizadorPRO
+          {tx.bienvenidaApp||"¡Bienvenido a MachX!"}
         </div>
         <div style={{ fontSize:14, color:t.textSub }}>
-          Sigue estos 3 pasos para crear tu primera cotización profesional
+          {tx.onboardingSubtitulo||"Sigue estos 3 pasos para crear tu primera cotización profesional"}
         </div>
       </div>
 
       {/* Pasos */}
       {[
         {
-          num:"1", icono:"🏭", titulo:"Configura tu taller",
-          desc:"Agrega el nombre, logo, RFC y datos fiscales de tu taller. Aparecerán en todos tus PDFs.",
-          tab:"config", btnLabel:"Ir a Configuración",
+          num:"1", icono:"🏭", titulo:tx.pasoConfigTaller||"Configura tu taller",
+          desc:tx.pasoConfigTallerDesc||"Agrega el nombre, logo, RFC y datos fiscales de tu taller. Aparecerán en todos tus PDFs.",
+          tab:"config", btnLabel:tx.btnIrConfig||"Ir a Configuración",
           listo: !!(datos.taller?.nombre),
         },
         {
-          num:"2", icono:"👥", titulo:"Agrega tu primer cliente",
-          desc:"Guarda los datos de tus clientes para cargarlos automáticamente al cotizar.",
-          tab:"clientes", btnLabel:"Ir a Clientes",
+          num:"2", icono:"👥", titulo:tx.pasoAgregarCliente||"Agrega tu primer cliente",
+          desc:tx.pasoAgregarClienteDesc||"Guarda los datos de tus clientes para cargarlos automáticamente al cotizar.",
+          tab:"clientes", btnLabel:tx.btnIrClientes||"Ir a Clientes",
           listo: (datos.clientes||[]).length > 0,
         },
         {
-          num:"3", icono:"💰", titulo:"Crea tu primera cotización",
-          desc:"Llena los datos del trabajo, agrega las partidas y genera un PDF profesional en segundos.",
-          tab:"cotizar", btnLabel:"Nueva Cotización",
+          num:"3", icono:"💰", titulo:tx.pasoCrearCot||"Crea tu primera cotización",
+          desc:tx.pasoCrearCotDesc||"Llena los datos del trabajo, agrega las partidas y genera un PDF profesional en segundos.",
+          tab:"cotizar", btnLabel:tx.nuevaCot||"Nueva Cotización",
           listo: false,
         },
       ].map((paso, i) => (
@@ -855,7 +855,7 @@ function PestanaLista({ datos, actualizarDatos, t, tamFuente, lang, onEditarComp
             <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
               <span style={{ fontSize:16 }}>{paso.icono}</span>
               <span style={{ fontWeight:700, fontSize:15, color:t.text }}>{paso.titulo}</span>
-              {paso.listo && <span style={{ fontSize:11, color:t.success, fontWeight:600, background:t.success+"22", padding:"2px 8px", borderRadius:10 }}>✓ Listo</span>}
+              {paso.listo && <span style={{ fontSize:11, color:t.success, fontWeight:600, background:t.success+"22", padding:"2px 8px", borderRadius:10 }}>✓ {tx.listoLbl||"Listo"}</span>}
             </div>
             <div style={{ fontSize:13, color:t.textSub, lineHeight:1.5, marginBottom:12 }}>
               {paso.desc}
@@ -868,7 +868,7 @@ function PestanaLista({ datos, actualizarDatos, t, tamFuente, lang, onEditarComp
                 cursor:"pointer", fontSize:13, fontWeight:600,
               }}
             >
-              {paso.listo ? "✓ Completado — ver" : `→ ${paso.btnLabel}`}
+              {paso.listo ? (tx.completadoVer||"✓ Completado — ver") : `→ ${paso.btnLabel}`}
             </button>
           </div>
         </div>
@@ -877,7 +877,7 @@ function PestanaLista({ datos, actualizarDatos, t, tamFuente, lang, onEditarComp
       {/* Tip final */}
       <div style={{ textAlign:"center", marginTop:24, padding:"14px 20px", background:t.input, borderRadius:10, border:`1px solid ${t.border}` }}>
         <span style={{ fontSize:13, color:t.textSub }}>
-          💡 <strong style={{ color:t.text }}>Tip:</strong> Tus cotizaciones se guardan automáticamente en la nube. Accede desde cualquier dispositivo.
+          💡 <strong style={{ color:t.text }}>Tip:</strong> {tx.tipNube||"Tus cotizaciones se guardan automáticamente en la nube. Accede desde cualquier dispositivo."}
         </span>
       </div>
     </div>
@@ -891,19 +891,19 @@ function PestanaLista({ datos, actualizarDatos, t, tamFuente, lang, onEditarComp
           onClick={()=>setModalEditar(null)}>
           <div style={{ background:t.card, borderRadius:16, padding:32, width:480, border:`1px solid ${t.border}`, boxShadow:"0 20px 60px rgba(0,0,0,0.5)" }}
             onClick={(e:any)=>e.stopPropagation()}>
-            <div style={{ fontWeight:800, fontSize:17, color:t.text, marginBottom:6 }}>✏️ Editar cotización</div>
+            <div style={{ fontWeight:800, fontSize:17, color:t.text, marginBottom:6 }}>{tx.modalEditarTitulo||"✏️ Editar cotización"}</div>
             <div style={{ fontSize:13, color:t.textSub, marginBottom:24 }}>
-              Folio actual: <span style={{ fontFamily:"monospace", color:t.accent, fontWeight:700 }}>{modalEditar.folio}</span>
+              {tx.folioActualLbl||"Folio actual:"} <span style={{ fontFamily:"monospace", color:t.accent, fontWeight:700 }}>{modalEditar.folio}</span>
             </div>
 
             {/* Opción A — Mismo folio */}
             <button onClick={()=>{ onEditarCompleto(modalEditar, "mismo"); setModalEditar(null); }}
               style={{ width:"100%", padding:"16px 20px", borderRadius:10, border:`1px solid ${t.border}`, background:t.input, cursor:"pointer", textAlign:"left" as const, marginBottom:12, display:"block" }}>
               <div style={{ fontWeight:700, color:t.text, fontSize:14, marginBottom:4 }}>
-                📝 Editar — mantener folio <span style={{ fontFamily:"monospace", fontSize:12, color:t.accent }}>{modalEditar.folio}</span>
+                {tx.opMismoFolioTitulo||"📝 Editar — mantener folio"} <span style={{ fontFamily:"monospace", fontSize:12, color:t.accent }}>{modalEditar.folio}</span>
               </div>
               <div style={{ fontSize:12, color:t.textSub }}>
-                Modifica procesos, materiales, cliente y condiciones. La cotización original se actualiza. Útil para correcciones.
+                {tx.opMismoFolioDesc||"Modifica procesos, materiales, cliente y condiciones. La cotización original se actualiza. Útil para correcciones."}
               </div>
             </button>
 
@@ -911,16 +911,16 @@ function PestanaLista({ datos, actualizarDatos, t, tamFuente, lang, onEditarComp
             <button onClick={()=>{ onEditarCompleto(modalEditar, "nuevo"); setModalEditar(null); }}
               style={{ width:"100%", padding:"16px 20px", borderRadius:10, border:`2px solid ${t.accent}`, background:t.input, cursor:"pointer", textAlign:"left" as const, marginBottom:20, display:"block" }}>
               <div style={{ fontWeight:700, color:t.accent, fontSize:14, marginBottom:4 }}>
-                🆕 Nueva versión — folio siguiente
+                {tx.opNuevoFolioTitulo||"🆕 Nueva versión — folio siguiente"}
               </div>
               <div style={{ fontSize:12, color:t.textSub }}>
-                Copia los datos a una cotización nueva con el siguiente folio. La original queda intacta como historial. Útil para revisiones de precio.
+                {tx.opNuevoFolioDesc||"Copia los datos a una cotización nueva con el siguiente folio. La original queda intacta como historial. Útil para revisiones de precio."}
               </div>
             </button>
 
             <button onClick={()=>setModalEditar(null)}
               style={{ width:"100%", padding:"9px", borderRadius:8, border:`1px solid ${t.border}`, background:"transparent", color:t.textSub, cursor:"pointer", fontSize:13 }}>
-              Cancelar
+              {tx.cancelar||"Cancelar"}
             </button>
           </div>
         </div>
@@ -931,18 +931,18 @@ function PestanaLista({ datos, actualizarDatos, t, tamFuente, lang, onEditarComp
         <div key={c.id} style={{ background:t.card, borderRadius:12, border:`1px solid ${t.border}`, padding:20, marginBottom:14 }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", flexWrap:"wrap" as const, gap:12 }}>
             <div>
-              <div style={{ fontWeight:700, fontSize:tamFuente+1, color:t.text }}>{c.folio} — {c.cliente?.empresa||c.cliente||"Sin cliente"}</div>
-              {c.cliente?.nombre && <div style={{ color:t.textSub, fontSize:tamFuente-1 }}>Contacto: {c.cliente.nombre}</div>}
+              <div style={{ fontWeight:700, fontSize:tamFuente+1, color:t.text }}>{c.folio} — {c.cliente?.empresa||c.cliente||tx.sinClienteLbl||"Sin cliente"}</div>
+              {c.cliente?.nombre && <div style={{ color:t.textSub, fontSize:tamFuente-1 }}>{tx.contactoColonLbl||"Contacto:"} {c.cliente.nombre}</div>}
               {c.descripcion     && <div style={{ color:t.textSub, fontSize:tamFuente-1, marginTop:4 }}>{c.descripcion}</div>}
               <div style={{ color:t.textSub, fontSize:tamFuente-1, marginTop:2 }}>📅 {c.fecha}</div>
               {c.cond?.entrega   && <div style={{ color:t.textSub, fontSize:tamFuente-1 }}>⏱ {c.cond.entrega}</div>}
             </div>
             <div style={{ textAlign:"right" }}>
               <div style={{ fontSize:22, fontWeight:800, color:t.accent }}>{fmtMXN(c.precioVenta)}</div>
-              <div style={{ fontSize:12, color:t.success }}>Utilidad: {fmtMXN(c.utilidad)} · {c.margenReal?.toFixed(1)}%</div>
+              <div style={{ fontSize:12, color:t.success }}>{tx.utilidadLbl||"Utilidad"}: {fmtMXN(c.utilidad)} · {c.margenReal?.toFixed(1)}%</div>
               <div style={{ display:"flex", gap:8, justifyContent:"flex-end", marginTop:10, flexWrap:"wrap" as const }}>
                 <button onClick={()=>setShowVista(c)} style={{ padding:"5px 12px", borderRadius:6, border:`1px solid ${t.border}`, background:"transparent", color:t.textSub, cursor:"pointer", fontSize:12 }}>🖨 PDF</button>
-                <button onClick={()=>setModalEditar(c)} style={{ padding:"5px 12px", borderRadius:6, border:`1px solid ${t.accent}`, background:"transparent", color:t.accent, cursor:"pointer", fontSize:12 }}>✏️ Editar</button>
+                <button onClick={()=>setModalEditar(c)} style={{ padding:"5px 12px", borderRadius:6, border:`1px solid ${t.accent}`, background:"transparent", color:t.accent, cursor:"pointer", fontSize:12 }}>{tx.editarBtn||"✏️ Editar"}</button>
                 <button onClick={()=>eliminar(c.id)} style={{ padding:"5px 12px", borderRadius:6, border:`1px solid ${t.danger}`, background:"transparent", color:t.danger, cursor:"pointer", fontSize:12 }}>{tx.eliminar||"Eliminar"}</button>
               </div>
             </div>
@@ -978,14 +978,14 @@ function VistaPDF({ datos, lineasCalc, res, extras, folio, descripcion, nota, cl
       {/* Warning si no hay datos del taller */}
       {!datos.taller?.nombre && (
         <div style={{ background:"#fef3c7", border:"1px solid #f59e0b", borderRadius:8, padding:"10px 16px", marginBottom:16, fontSize:13, color:"#92400e" }} data-noprint>
-          ⚠ <strong>Tu taller no tiene datos configurados.</strong> Ve a <strong>{tx.configuracion||"Configuración"} → {tx.datosTaller||"Datos del Taller"}</strong> para agregar nombre, logo y datos fiscales. Aparecerán en este PDF.
+          ⚠ <strong>Tu taller no tiene datos configurados.</strong> Ve a <strong>{txPDF.configuracion||"Configuración"} → {txPDF.datosTaller||"Datos del Taller"}</strong> para agregar nombre, logo y datos fiscales. Aparecerán en este PDF.
         </div>
       )}
 
       <div style={{ display:"flex", gap:10, alignItems:"center", marginBottom:20, flexWrap:"wrap" as const }} data-noprint>
-        <button onClick={onCerrar} style={{ padding:"7px 14px", borderRadius:8, border:`1px solid ${t.border}`, background:"transparent", color:t.text, cursor:"pointer" }}>← Volver</button>
-        <button onClick={()=>window.print()} style={{ padding:"7px 16px", borderRadius:8, border:"none", background:t.accent, color:"#fff", cursor:"pointer", fontWeight:700 }}>🖨 Imprimir / PDF</button>
-        <span style={{ fontSize:11, color:t.textSub }}>Plantilla: {plantilla} · {MONEDAS[moneda]?.flag} {moneda} · {idioma==="en"?"English":"Español"}</span>
+        <button onClick={onCerrar} style={{ padding:"7px 14px", borderRadius:8, border:`1px solid ${t.border}`, background:"transparent", color:t.text, cursor:"pointer" }}>{txPDF.volverBtn||"← Volver"}</button>
+        <button onClick={()=>window.print()} style={{ padding:"7px 16px", borderRadius:8, border:"none", background:t.accent, color:"#fff", cursor:"pointer", fontWeight:700 }}>{txPDF.imprimirBtn||"🖨 Imprimir / PDF"}</button>
+        <span style={{ fontSize:11, color:t.textSub }}>{txPDF.plantillaColonLbl||"Plantilla:"} {plantilla} · {MONEDAS[moneda]?.flag} {moneda} · {idioma==="en"?"English":idioma==="pt"?"Português":"Español"}</span>
         {moneda !== "MXN" && <span style={{ fontSize:11, color:t.textSub }}>T.C.: 1 USD = ${tc} MXN</span>}
       </div>
 
@@ -996,16 +996,16 @@ function VistaPDF({ datos, lineasCalc, res, extras, folio, descripcion, nota, cl
             {datos.taller?.logo && <img src={datos.taller.logo} alt="logo" style={{ height:56, maxWidth:110, objectFit:"contain" }}/>}
             <div>
               <div style={{ fontSize:18, fontWeight:800 }}>{tallerNombre}</div>
-              {datos.taller?.rfc            && <div style={{ fontSize:11, color: plantilla==="industrial"?"#7DCFB6":"#64748b", marginTop:2 }}>RFC: {datos.taller.rfc}</div>}
+              {datos.taller?.rfc            && <div style={{ fontSize:11, color: plantilla==="industrial"?"#7DCFB6":"#64748b", marginTop:2 }}>{txPDF.rfc}: {datos.taller.rfc}</div>}
               {datos.taller?.direccionFiscal && <div style={{ fontSize:11, color:"#94a3b8", marginTop:1 }}>{datos.taller.direccionFiscal}</div>}
-              {datos.taller?.telefono        && <div style={{ fontSize:12, color:"#94a3b8", marginTop:2 }}>Tel: {datos.taller.telefono}</div>}
-              {datos.taller?.email           && <div style={{ fontSize:12, color:"#94a3b8" }}>Email: {datos.taller.email}</div>}
+              {datos.taller?.telefono        && <div style={{ fontSize:12, color:"#94a3b8", marginTop:2 }}>{txPDF.telefono}: {datos.taller.telefono}</div>}
+              {datos.taller?.email           && <div style={{ fontSize:12, color:"#94a3b8" }}>{txPDF.email}: {datos.taller.email}</div>}
             </div>
           </div>
           <div style={{ textAlign:"right" }}>
             <div style={{ fontSize:28, fontWeight:800, letterSpacing:"-0.5px", color: plantilla==="industrial"?"#f97316":undefined }}>{txPDF.cotizacion}</div>
             <div style={{ marginTop:6, fontSize:14, fontWeight:700, background: plantilla==="industrial"?"#f97316":"#1a1d27", color:"white", padding:"3px 12px", borderRadius:4, display:"inline-block" }}>{folio}</div>
-            <div style={{ fontSize:12, color:"#94a3b8", marginTop:4 }}>Fecha: {new Date().toLocaleDateString("es-MX")} · {txPDF.vigencia}: {cond.validez||30} {txPDF.dias}</div>
+            <div style={{ fontSize:12, color:"#94a3b8", marginTop:4 }}>{txPDF.fechaColonLbl||"Fecha:"} {new Date().toLocaleDateString("es-MX")} · {txPDF.vigencia}: {cond.validez||30} {txPDF.dias}</div>
             {moneda !== "MXN" && <div style={{ fontSize:11, color:"#f97316", marginTop:2 }}>T.C.: 1 USD = ${tc} MXN</div>}
           </div>
         </div>
@@ -1033,7 +1033,7 @@ function VistaPDF({ datos, lineasCalc, res, extras, folio, descripcion, nota, cl
         </div>
 
         {/* DESCRIPCIÓN */}
-        {descripcion && <div style={{ background: plantilla==="industrial"?"#0D1B2A":"#f8fafc", borderRadius:8, padding:"10px 14px", marginBottom:20, fontSize:13, color:"#64748b" }}><strong>Trabajo: </strong>{descripcion}</div>}
+        {descripcion && <div style={{ background: plantilla==="industrial"?"#0D1B2A":"#f8fafc", borderRadius:8, padding:"10px 14px", marginBottom:20, fontSize:13, color:"#64748b" }}><strong>{txPDF.trabajoColonLbl||"Trabajo: "}</strong>{descripcion}</div>}
 
         {/* TABLA — solo lo que ve el cliente */}
         <table style={estilosComunes.tabla}>
@@ -1061,7 +1061,7 @@ function VistaPDF({ datos, lineasCalc, res, extras, folio, descripcion, nota, cl
                     <div style={{ fontWeight:600, fontSize:14 }}>{nombreMostrar}</div>
                   </td>
                   <td style={{ ...estilosComunes.td, textAlign:"center" as const, fontWeight:600 }}>1</td>
-                  <td style={{ ...estilosComunes.td, color:"#64748b" }}>pza</td>
+                  <td style={{ ...estilosComunes.td, color:"#64748b" }}>{txPDF.unidadPzaLbl||"pza"}</td>
                   <td style={{ ...estilosComunes.td, textAlign:"right" as const, color:"#5a6278" }}>{fmt2(precioClientePartida)}</td>
                   <td style={{ ...estilosComunes.td, textAlign:"right" as const, fontWeight:700, fontSize:14 }}>{fmt2(precioClientePartida)}</td>
                 </tr>
@@ -1070,7 +1070,7 @@ function VistaPDF({ datos, lineasCalc, res, extras, folio, descripcion, nota, cl
             {extras > 0 && (
               <tr style={{ borderBottom: plantilla==="industrial"?"1px solid #1e3a5f":"1px solid #e8ebf0" }}>
                 <td style={{ ...estilosComunes.td, textAlign:"center" as const, color:"#94a3b8" }}>+</td>
-                <td style={estilosComunes.td}><div style={{ fontWeight:600 }}>Fletes / Servicios adicionales</div></td>
+                <td style={estilosComunes.td}><div style={{ fontWeight:600 }}>{txPDF.flete||"Fletes / Servicios adicionales"}</div></td>
                 <td style={{ ...estilosComunes.td, textAlign:"center" as const }}>1</td>
                 <td style={{ ...estilosComunes.td, color:"#64748b" }}>—</td>
                 <td style={{ ...estilosComunes.td, textAlign:"right" as const }}>{fmt2(extras)}</td>
@@ -1103,7 +1103,7 @@ function VistaPDF({ datos, lineasCalc, res, extras, folio, descripcion, nota, cl
                 </div>
                 {!impActivo && (
                   <div style={{ fontSize:11, color:"#94a3b8", textAlign:"center" as const, marginTop:6 }}>
-                    Precio no incluye impuestos — sujeto a régimen fiscal del cliente
+                    {txPDF.notaRegimenFiscal||"Precio no incluye impuestos — sujeto a régimen fiscal del cliente"}
                   </div>
                 )}
               </>);
@@ -1123,7 +1123,7 @@ function VistaPDF({ datos, lineasCalc, res, extras, folio, descripcion, nota, cl
             </div>
           ))}
         </div>
-        <div style={{ textAlign:"center", color:"#cbd5e1", fontSize:10, marginTop:16 }}>CotizadorPRO Estándar · Sistema de Cotización Industrial</div>
+        <div style={{ textAlign:"center", color:"#cbd5e1", fontSize:10, marginTop:16 }}>MachX Starter · {txPDF.taglineFooter||"Sistema de Cotización Industrial"}</div>
       </div>
     </div>
   );
@@ -1149,9 +1149,9 @@ function PestanaClientes({ datos, actualizarDatos, t, tamFuente, lang, mostrarNo
   }
 
   function eliminar(id: number) {
-    if (!window.confirm("¿Eliminar este cliente?")) return;
+    if (!window.confirm(tx.confirmEliminarCliente||"¿Eliminar este cliente?")) return;
     actualizarDatos({ clientes: clientes.filter((c: any) => c.id !== id) });
-    mostrarNotif("Cliente eliminado.", "warn");
+    mostrarNotif(tx.notifClienteEliminado||"Cliente eliminado.", "warn");
   }
 
   function guardarEdicion(id: number, datos2: any) {
@@ -1168,9 +1168,9 @@ function PestanaClientes({ datos, actualizarDatos, t, tamFuente, lang, mostrarNo
     <div>
       {/* Formulario nuevo cliente */}
       <div style={{ background:t.card, borderRadius:12, border:`1px solid ${t.border}`, padding:24, marginBottom:20 }}>
-        <div style={{ fontWeight:700, fontSize:tamFuente+1, marginBottom:4, color:t.text }}>➕ Agregar cliente al catálogo</div>
+        <div style={{ fontWeight:700, fontSize:tamFuente+1, marginBottom:4, color:t.text }}>{tx.agregarClienteCatalogoTitulo||"➕ Agregar cliente al catálogo"}</div>
         <div style={{ fontSize:12, color:t.textSub, marginBottom:16, padding:"8px 12px", background:t.input, borderRadius:6 }}>
-          💡 Los clientes guardados aquí se cargan automáticamente al cotizar — sin volver a escribir sus datos.
+          💡 {tx.tipClientesCatalogo||"Los clientes guardados aquí se cargan automáticamente al cotizar — sin volver a escribir sus datos."}
         </div>
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:12 }}>
           <div><label style={label}>{tx.empresa||"Empresa *"}</label><input style={inp} value={nuevo.empresa} onChange={e=>setNuevo(p=>({...p,empresa:e.target.value}))} placeholder={tx.phEmpresa||"Nombre de la empresa"}/></div>
@@ -1180,7 +1180,7 @@ function PestanaClientes({ datos, actualizarDatos, t, tamFuente, lang, mostrarNo
           <div><label style={label}>{tx.ciudad||"Ciudad"}</label><input style={inp} value={nuevo.ciudad} onChange={e=>setNuevo(p=>({...p,ciudad:e.target.value}))} placeholder={tx.phCiudad||"Ciudad"}/></div>
           <div><label style={label}>{tx.rfc||"RFC"}</label><input style={inp} value={nuevo.rfc} onChange={e=>setNuevo(p=>({...p,rfc:e.target.value.toUpperCase()}))} placeholder={tx.phRFC||"RFC del cliente"}/></div>
           <div><label style={label}>{tx.razonSocial||"Razón Social"}</label><input style={inp} value={nuevo.razonSocial} onChange={e=>setNuevo(p=>({...p,razonSocial:e.target.value}))} placeholder={tx.phRazon||"Razón social completa"}/></div>
-          <div><label style={label}>{tx.dirFiscal||"Dirección Fiscal"}</label><input style={inp} value={nuevo.direccionFiscal} onChange={e=>setNuevo(p=>({...p,direccionFiscal:e.target.value}))} placeholder="Calle, Col., C.P., Ciudad"/></div>
+          <div><label style={label}>{tx.dirFiscal||"Dirección Fiscal"}</label><input style={inp} value={nuevo.direccionFiscal} onChange={e=>setNuevo(p=>({...p,direccionFiscal:e.target.value}))} placeholder={tx.phDir||"Calle, Colonia, C.P., Ciudad"}/></div>
         </div>
         <button onClick={agregar} style={{ padding:"9px 20px", borderRadius:8, border:"none", background:t.accent, color:"#fff", fontWeight:700, cursor:"pointer", fontSize:tamFuente }}>{tx.agregarCliente||"+ Agregar cliente"}</button>
       </div>
@@ -1188,7 +1188,7 @@ function PestanaClientes({ datos, actualizarDatos, t, tamFuente, lang, mostrarNo
       {/* Lista */}
       <div style={{ background:t.card, borderRadius:12, border:`1px solid ${t.border}`, padding:24 }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
-          <div style={{ fontWeight:700, fontSize:tamFuente+1, color:t.text }}>👥 Clientes ({clientes.length})</div>
+          <div style={{ fontWeight:700, fontSize:tamFuente+1, color:t.text }}>{tx.clientesHeaderLbl||"👥 Clientes"} ({clientes.length})</div>
           <input style={{ ...inp, width:240 }} placeholder={tx.phBuscar||"Buscar…"} value={busca} onChange={e=>setBusca(e.target.value)}/>
         </div>
         {clientesFiltrados.length === 0
@@ -1201,14 +1201,14 @@ function PestanaClientes({ datos, actualizarDatos, t, tamFuente, lang, mostrarNo
                 ) : (
                   <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
                     <div>
-                      <div style={{ fontWeight:700, color:t.text }}>{c.empresa||"Sin empresa"}</div>
+                      <div style={{ fontWeight:700, color:t.text }}>{c.empresa||tx.sinEmpresaLbl||"Sin empresa"}</div>
                       {c.nombre && <div style={{ fontSize:12, color:t.textSub }}>{c.nombre}</div>}
-                      {c.rfc    && <div style={{ fontSize:11, color:t.textSub }}>RFC: {c.rfc}</div>}
+                      {c.rfc    && <div style={{ fontSize:11, color:t.textSub }}>{tx.rfc||"RFC"}: {c.rfc}</div>}
                       {c.email  && <div style={{ fontSize:11, color:t.textSub }}>{c.email}</div>}
                       {c.ciudad && <div style={{ fontSize:11, color:t.textSub }}>{c.ciudad}</div>}
                     </div>
                     <div style={{ display:"flex", gap:8 }}>
-                      <button onClick={()=>setEditId(c.id)} style={{ padding:"4px 10px", borderRadius:6, border:`1px solid ${t.accent}`, background:"transparent", color:t.accent, cursor:"pointer", fontSize:12 }}>✏️ Editar</button>
+                      <button onClick={()=>setEditId(c.id)} style={{ padding:"4px 10px", borderRadius:6, border:`1px solid ${t.accent}`, background:"transparent", color:t.accent, cursor:"pointer", fontSize:12 }}>{tx.editarBtn||"✏️ Editar"}</button>
                       <button onClick={()=>eliminar(c.id)} style={{ padding:"4px 10px", borderRadius:6, border:`1px solid ${t.danger}`, background:"transparent", color:t.danger, cursor:"pointer", fontSize:12 }}>{tx.eliminar||"Eliminar"}</button>
                     </div>
                   </div>
@@ -1234,7 +1234,7 @@ function EditarCliente({ c, t, tamFuente, inp, label, lang, onGuardar, onCancela
         <div><label style={label}>{tx.ciudad||"Ciudad"}</label><input style={inp} value={d.ciudad} onChange={e=>setD(p=>({...p,ciudad:e.target.value}))}/></div>
         <div><label style={label}>{tx.rfc||"RFC"}</label><input style={inp} value={d.rfc} onChange={e=>setD(p=>({...p,rfc:e.target.value.toUpperCase()}))}/></div>
         <div><label style={label}>{tx.razonSocial||"Razón Social"}</label><input style={inp} value={d.razonSocial} onChange={e=>setD(p=>({...p,razonSocial:e.target.value}))}/></div>
-        <div><label style={label}>Dir. Fiscal</label><input style={inp} value={d.direccionFiscal} onChange={e=>setD(p=>({...p,direccionFiscal:e.target.value}))}/></div>
+        <div><label style={label}>{tx.dirFiscal||"Dirección Fiscal"}</label><input style={inp} value={d.direccionFiscal} onChange={e=>setD(p=>({...p,direccionFiscal:e.target.value}))}/></div>
       </div>
       <div style={{ display:"flex", gap:8 }}>
         <button onClick={()=>onGuardar(d)} style={{ padding:"7px 16px", borderRadius:8, border:"none", background:t.accent, color:"#fff", fontWeight:700, cursor:"pointer", fontSize:tamFuente }}>{tx.guardarBtn||"Guardar"}</button>
@@ -1269,7 +1269,7 @@ function PestanaMateriales({ datos, actualizarDatos, t, tamFuente, lang }: any) 
       </div>
       <table style={{ width:"100%", borderCollapse:"collapse" as const, fontSize:tamFuente }}>
         <thead><tr style={{ color:t.textSub }}>
-          {["Material","Precio/kg",""].map(h=><th key={h} style={{ padding:"8px 12px", textAlign:"left" as const, borderBottom:`1px solid ${t.border}`, fontWeight:600 }}>{h}</th>)}
+          {[tx.materialLbl||"Material", tx.precioKgCol||"Precio/kg", ""].map(h=><th key={h} style={{ padding:"8px 12px", textAlign:"left" as const, borderBottom:`1px solid ${t.border}`, fontWeight:600 }}>{h}</th>)}
         </tr></thead>
         <tbody>{datos.materiales.map((m: any)=>(
           <tr key={m.id}>
@@ -1308,7 +1308,7 @@ function PestanaProcesos({ datos, actualizarDatos, t, tamFuente, lang }: any) {
       </div>
       <table style={{ width:"100%", borderCollapse:"collapse" as const, fontSize:tamFuente }}>
         <thead><tr style={{ color:t.textSub }}>
-          {["Proceso / Máquina","Tarifa/hr",""].map(h=><th key={h} style={{ padding:"8px 12px", textAlign:"left" as const, borderBottom:`1px solid ${t.border}`, fontWeight:600 }}>{h}</th>)}
+          {[tx.processoMaq||"Proceso / Máquina", tx.tarifaHrCol||"Tarifa/hr", ""].map(h=><th key={h} style={{ padding:"8px 12px", textAlign:"left" as const, borderBottom:`1px solid ${t.border}`, fontWeight:600 }}>{h}</th>)}
         </tr></thead>
         <tbody>{datos.procesos.map((p: any)=>(
           <tr key={p.id}>
@@ -1323,7 +1323,8 @@ function PestanaProcesos({ datos, actualizarDatos, t, tamFuente, lang }: any) {
 }
 
 // ─── COMPONENTE: ACTUALIZAR TIPO DE CAMBIO ────────────────────────────────────
-function ActualizarTC({ t, tamFuente, tcActual, onActualizar }: any) {
+function ActualizarTC({ t, tamFuente, tcActual, onActualizar, lang }: any) {
+  const tx = getT(lang);
   const [cargando,  setCargando]  = useState(false);
   const [resultado, setResultado] = useState<string|null>(null);
   const [ultimaAct, setUltimaAct] = useState<string|null>(null);
@@ -1336,7 +1337,7 @@ function ActualizarTC({ t, tamFuente, tcActual, onActualizar }: any) {
       setResultado(`✅ TC actualizado: $${tc.toFixed(4)} MXN por 1 USD`);
       setUltimaAct(new Date().toLocaleTimeString("es-MX"));
     } else {
-      setResultado("❌ No se pudo obtener el TC. Verifica tu conexión.");
+      setResultado(tx.tcError||"❌ No se pudo obtener el TC. Verifica tu conexión.");
     }
     setCargando(false);
   }
@@ -1344,13 +1345,13 @@ function ActualizarTC({ t, tamFuente, tcActual, onActualizar }: any) {
   return (
     <div style={{ background: t.input, borderRadius:8, padding:"12px 16px", display:"flex", alignItems:"center", gap:16, flexWrap:"wrap" as const }}>
       <div style={{ flex:1 }}>
-        <div style={{ fontSize:13, fontWeight:600, color:t.text }}>Tipo de cambio actual: <span style={{ fontFamily:"monospace", color:t.accent }}>${tcActual.toFixed(4)} MXN / USD</span></div>
-        {ultimaAct && <div style={{ fontSize:11, color:t.textSub, marginTop:2 }}>Última actualización: {ultimaAct}</div>}
+        <div style={{ fontSize:13, fontWeight:600, color:t.text }}>{tx.tcUsdMxnLbl||"T.C. USD → MXN"}: <span style={{ fontFamily:"monospace", color:t.accent }}>${tcActual.toFixed(4)} MXN / USD</span></div>
+        {ultimaAct && <div style={{ fontSize:11, color:t.textSub, marginTop:2 }}>{tx.tcUltimaAct||"Última actualización:"} {ultimaAct}</div>}
         {resultado && <div style={{ fontSize:12, color: resultado.startsWith("✅")?t.success:t.danger, marginTop:4 }}>{resultado}</div>}
         <div style={{ fontSize:11, color:t.textSub, marginTop:4 }}>Fuente: frankfurter.app (Banco Central Europeo) · Se aplica a cotizaciones nuevas, no modifica las guardadas.</div>
       </div>
       <button onClick={actualizar} disabled={cargando} style={{ padding:"9px 18px", borderRadius:8, border:`1px solid ${t.accent}`, background:"transparent", color:t.accent, cursor:cargando?"not-allowed":"pointer", fontWeight:700, fontSize:tamFuente, opacity:cargando?0.6:1, whiteSpace:"nowrap" as const }}>
-        {cargando ? "⏳ Consultando…" : "🔄 Actualizar TC"}
+        {cargando ? (tx.tcConsultando||"⏳ Consultando…") : (tx.tcActualizarBtn||"🔄 Actualizar TC")}
       </button>
     </div>
   );
@@ -1389,7 +1390,7 @@ function PestanaConfig({ datos, actualizarDatos, t, tamFuente, lang, setIdiomaAc
         </div>
         {/* Datos fiscales del taller */}
         <div style={{ background:t.input, borderRadius:8, padding:16 }}>
-          <div style={{ fontSize:11, fontWeight:700, color:t.textSub, textTransform:"uppercase" as const, letterSpacing:"0.07em", marginBottom:12 }}>🏛 Datos Fiscales del Taller (aparecen en el PDF)</div>
+          <div style={{ fontSize:11, fontWeight:700, color:t.textSub, textTransform:"uppercase" as const, letterSpacing:"0.07em", marginBottom:12 }}>🏛 {tx.datosFiscalesTallerTitulo||"Datos Fiscales del Taller (aparecen en el PDF)"}</div>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
             <div><label style={label}>{tx.rfcTaller||"RFC del taller"}</label><input style={inp} value={datos.taller.rfc||""} onChange={e=>actualizarDatos({ taller:{...datos.taller,rfc:e.target.value.toUpperCase()} })}/></div>
             <div><label style={label}>{tx.razonSocial||"Razón Social"}</label><input style={inp} value={datos.taller.razonSocial||""} onChange={e=>actualizarDatos({ taller:{...datos.taller,razonSocial:e.target.value} })}/></div>
@@ -1447,7 +1448,7 @@ function PestanaConfig({ datos, actualizarDatos, t, tamFuente, lang, setIdiomaAc
       <div style={card}>
         <div style={{ fontWeight:700, fontSize:tamFuente+2, marginBottom:6, color:t.text }}>{`🧾 ${tx.impuestoVentas||"Impuesto sobre Ventas"}`}</div>
         <div style={{ fontSize:12, color:t.textSub, marginBottom:16 }}>
-          Configura el impuesto según tu país: IVA 16% (México), Sales Tax (EE.UU.), VAT 19% (Alemania), o desactívalo para exportaciones con tasa cero.
+          {tx.impuestoAyuda||"Configura el impuesto según tu país: IVA 16% (México), Sales Tax (EE.UU.), VAT 19% (Alemania), o desactívalo para exportaciones con tasa cero."}
         </div>
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:16, marginBottom:12 }}>
           <div>
@@ -1465,7 +1466,7 @@ function PestanaConfig({ datos, actualizarDatos, t, tamFuente, lang, setIdiomaAc
           <div>
             <label style={label}>{tx.mostrarPDF||"Mostrar en PDF"}</label>
             <div style={{ display:"flex", gap:8, marginTop:6 }}>
-              {[{v:true,l:"✅ Sí, incluir"},{v:false,l:"❌ No (tasa cero / exento)"}].map(op=>(
+              {[{v:true,l:`✅ ${tx.siIncluir||"Sí, Incluir"}`},{v:false,l:`❌ ${tx.noTasaCero||"No (tasa cero / exento)"}`}].map(op=>(
                 <button key={String(op.v)} onClick={()=>actualizarDatos({ config:{...datos.config, impuestoActivo:op.v} })}
                   style={{ flex:1, padding:"8px 4px", borderRadius:8, border:`1px solid ${(datos.config?.impuestoActivo??true)===op.v?t.accent:t.border}`,
                     background:(datos.config?.impuestoActivo??true)===op.v?t.input:"transparent",
@@ -1477,7 +1478,7 @@ function PestanaConfig({ datos, actualizarDatos, t, tamFuente, lang, setIdiomaAc
           </div>
         </div>
         <div style={{ fontSize:11, color:t.textSub, background:t.input, padding:"8px 12px", borderRadius:6 }}>
-          Ejemplos: México IVA 16% · EE.UU. sin impuesto (B2B con certificado de exención) · Alemania VAT 19% · España IVA 21% · Colombia IVA 19% · Exportación directa: desactivado (tasa cero)
+          {tx.impuestoEjemplos||"Ejemplos: México IVA 16% · EE.UU. sin impuesto (B2B con certificado de exención) · Alemania VAT 19% · España IVA 21% · Colombia IVA 19% · Exportación directa: desactivado (tasa cero)"}
         </div>
       </div>
 
@@ -1492,7 +1493,7 @@ function PestanaConfig({ datos, actualizarDatos, t, tamFuente, lang, setIdiomaAc
             </select>
           </div>
           <div>
-            <label style={label}>T.C. USD → MXN</label>
+            <label style={label}>{tx.tcUsdMxnLbl||"T.C. USD → MXN"}</label>
             <input type="number" style={inp} min={1} step={0.01} value={datos.config.tc||17.5}
               onChange={e=>actualizarDatos({ config:{...datos.config,tc:parseFloat(e.target.value)||17.5} })}/>
           </div>
@@ -1505,7 +1506,7 @@ function PestanaConfig({ datos, actualizarDatos, t, tamFuente, lang, setIdiomaAc
             </select>
           </div>
         </div>
-        <ActualizarTC t={t} tamFuente={tamFuente} tcActual={datos.config.tc||17.5}
+        <ActualizarTC t={t} tamFuente={tamFuente} tcActual={datos.config.tc||17.5} lang={lang}
           onActualizar={(nuevoTC: number) => actualizarDatos({ config:{...datos.config, tc:nuevoTC} })}/>
       </div>
 
@@ -1516,9 +1517,9 @@ function PestanaConfig({ datos, actualizarDatos, t, tamFuente, lang, setIdiomaAc
           <div>
             <label style={label}>{tx.temaColor||"Tema de color"}</label>
             <select style={inp} value={datos.tema} onChange={e=>actualizarDatos({ tema:e.target.value })}>
-              <option value="claro">☀️ Claro Profesional (recomendado)</option>
-              <option value="oscuro">🌑 Oscuro Industrial</option>
-              <option value="marino">🌊 Azul Marino</option>
+              <option value="claro">{tx.temaClaro||"☀️ Claro Profesional (recomendado)"}</option>
+              <option value="oscuro">{tx.temaOscuro||"🌑 Oscuro Industrial"}</option>
+              <option value="marino">{tx.temaMarino||"🌊 Azul Marino"}</option>
             </select>
           </div>
           <div>
@@ -1532,9 +1533,9 @@ function PestanaConfig({ datos, actualizarDatos, t, tamFuente, lang, setIdiomaAc
           <div>
             <label style={label}>{tx.tamTexto||"Tamaño de texto"}</label>
             <select style={inp} value={datos.tamTexto} onChange={e=>actualizarDatos({ tamTexto:e.target.value })}>
-              <option value="chico">Chico</option>
-              <option value="normal">Normal</option>
-              <option value="grande">Grande</option>
+              <option value="chico">{tx.tamChico||"Chico"}</option>
+              <option value="normal">{tx.tamNormal||"Normal"}</option>
+              <option value="grande">{tx.tamGrande||"Grande"}</option>
             </select>
           </div>
         </div>
@@ -1542,8 +1543,8 @@ function PestanaConfig({ datos, actualizarDatos, t, tamFuente, lang, setIdiomaAc
           <label style={label}>{tx.plantillaPDF||"Plantilla del PDF"}</label>
           <div style={{ display:"flex", gap:10 }}>
             {[
-              { id:"formal",     label:"📄 Formal",     desc:"Clásico blanco y negro" },
-              { id:"industrial", label:"⚙️ Industrial", desc:"Fondo oscuro, impacto visual" },
+              { id:"formal",     label:tx.plantillaFormalLbl||"📄 Formal",     desc:tx.plantillaFormalDesc||"Clásico blanco y negro" },
+              { id:"industrial", label:tx.plantillaIndustrialLbl||"⚙️ Industrial", desc:tx.plantillaIndustrialDesc||"Fondo oscuro, impacto visual" },
             ].map(pl=>(
               <button key={pl.id} onClick={()=>actualizarDatos({ plantillaPDF:pl.id })} style={{ flex:1, padding:"12px", borderRadius:8, border:`2px solid ${datos.plantillaPDF===pl.id?t.accent:t.border}`, background:datos.plantillaPDF===pl.id?t.input:"transparent", cursor:"pointer", textAlign:"left" as const }}>
                 <div style={{ fontWeight:700, color:datos.plantillaPDF===pl.id?t.accent:t.text, fontSize:tamFuente }}>{pl.label}</div>
