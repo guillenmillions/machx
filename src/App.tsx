@@ -6,6 +6,54 @@ import { TEMAS, T18N, MONEDAS, getT } from "./i18n";
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+// ─── LICENCIA (control de acceso por compra Hotmart) ───────────────────────────
+type EstadoLicencia = "cargando" | "activa" | "pendiente" | "bloqueada";
+
+function useLicencia(email: string | null | undefined): EstadoLicencia {
+  const [estado, setEstado] = useState<EstadoLicencia>("cargando");
+
+  useEffect(() => {
+    if (!email) return;
+    let cancelado = false;
+
+    (async () => {
+      const { data, error } = await supabase
+        .from("licencias")
+        .select("estado")
+        .eq("email", email.toLowerCase().trim())
+        .maybeSingle();
+
+      if (cancelado) return;
+
+      if (error) {
+        console.error("Error consultando licencia:", error);
+        setEstado("bloqueada");
+        return;
+      }
+      if (!data) { setEstado("bloqueada"); return; }
+      if (data.estado === "activa") setEstado("activa");
+      else if (data.estado === "pendiente") setEstado("pendiente");
+      else setEstado("bloqueada");
+    })();
+
+    return () => { cancelado = true; };
+  }, [email]);
+
+  return estado;
+}
+
+function PantallaLicenciaBloqueada({ estado, onCerrarSesion }: { estado: EstadoLicencia; onCerrarSesion: () => void }) {
+  const mensaje = estado === "pendiente"
+    ? "Tu pago está confirmándose. Esto normalmente toma unos minutos."
+    : "No encontramos una compra activa con este correo.";
+  return (
+    <div style={{ minHeight:"100vh", background:"#0f1117", display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column", gap:16, padding:24, textAlign:"center", color:"#e5e7eb", fontFamily:"IBM Plex Sans,sans-serif" }}>
+      <h2 style={{ margin:0 }}>{estado === "pendiente" ? "Pago en proceso" : "Acceso no disponible"}</h2>
+      <p style={{ maxWidth:420, opacity:0.85 }}>{mensaje} Si ya compraste MachX Starter, asegúrate de iniciar sesión con el mismo correo que usaste en Hotmart. Si el problema sigue, escríbenos a contacto@acdym.com.</p>
+      <button onClick={onCerrarSesion} style={{ padding:"8px 16px", borderRadius:8, border:"1px solid #374151", background:"transparent", color:"#e5e7eb", cursor:"pointer" }}>Cerrar sesión</button>
+    </div>
+  );
+}
 
 
 // ─── TEXTOS BILINGÜE ──────────────────────────────────────────────────────────
@@ -322,6 +370,7 @@ export default function CotizadorProEstandar() {
     });
     return () => subscription.unsubscribe();
   }, []);
+  const estadoLicencia = useLicencia(sesion?.user?.email);
 
   // ── Cargar datos desde Supabase ───────────────────────────────────────────────
   useEffect(() => {
@@ -380,6 +429,13 @@ export default function CotizadorProEstandar() {
   );
 
   if (!sesion) return <PantallaLogin onLang={() => {}} />;
+  if (estadoLicencia === "cargando") return (
+    <div style={{ minHeight:"100vh", background:"#0f1117", display:"flex", alignItems:"center", justifyContent:"center" }}>
+      <div style={{ color:"#4f6ef7", fontSize:18, fontFamily:"IBM Plex Sans,sans-serif" }}>Verificando tu licencia…</div>
+    </div>
+  );
+
+  if (estadoLicencia !== "activa") return <PantallaLicenciaBloqueada estado={estadoLicencia} onCerrarSesion={cerrarSesion} />;
 
   const t        = TEMAS[datos.tema] || TEMAS.oscuro;
   const tamFuente = datos.tamTexto === "chico" ? 13 : datos.tamTexto === "grande" ? 16 : 14;
